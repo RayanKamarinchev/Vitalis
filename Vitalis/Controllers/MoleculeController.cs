@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 using Vitalis.Core.Contracts;
+using Vitalis.Core.Models.Chemistry;
 
 namespace Vitalis.Controllers
 {
@@ -8,10 +9,6 @@ namespace Vitalis.Controllers
     [Route("mol")]
     public class MoleculeController : ControllerBase
     {
-        //public IActionResult Index()
-        //{
-        //    return View();
-        //}
         private readonly IMoleculeService moleculeService;
 
         public MoleculeController(IMoleculeService _moleculeService)
@@ -19,15 +16,16 @@ namespace Vitalis.Controllers
             moleculeService = _moleculeService;
         }
 
-        [HttpPost("getSmiles")]
-        public string GetSmiles([FromBody] SingleValueJson input)
+        [HttpGet("getReactions")]
+        public List<Reaction> GetReactions([FromBody] SingleValueJson input)
         {
-            return moleculeService.ConvertFile(input.mol);
+            var res = moleculeService.GetPossibleReactions(input.Reactant);
+            return res;
         }
     }
 
     public class SingleValueJson
     {
-        public string mol { get; set; }
+        public string Reactant { get; set; }
     }
 }
