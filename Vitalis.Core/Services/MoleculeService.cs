@@ -1,17 +1,18 @@
-﻿using System.Security.Cryptography.X509Certificates;
-using Microsoft.Extensions.Configuration;
-using Newtonsoft.Json;
-using OpenAI.Chat;
+﻿using Microsoft.Extensions.Configuration;
+using NCDK.SMARTS;
+using NCDK.Smiles;
+using NCDK;
+using System.Text.RegularExpressions;
 using Vitalis.Core.Contracts;
 using Vitalis.Core.Models.Chemistry;
-using static Vitalis.Core.Constants.Constants;
-using System.Text.RegularExpressions;
 
 namespace Vitalis.Core.Services
 {
     public class MoleculeService : IMoleculeService
     {
         private readonly IConfiguration config;
+        private readonly SmilesParser smilesParser = new SmilesParser();
+        private readonly SmartsPattern benzenePattern = SmartsPattern.Create("c1ccccc1");
 
         public MoleculeService(IConfiguration _config)
         {
@@ -22,6 +23,9 @@ namespace Vitalis.Core.Services
         {
             //cycloalkanes 2 halogens
             //dehalogenation
+            //benxene preparation
+            var mol = smilesParser.ParseSmiles(reactant);
+
             List<Reaction> reactions = new List<Reaction>();
             AddReaction("Cl2", "", "hv");
             AddReaction("Br2", "", "hv");
@@ -36,7 +40,7 @@ namespace Vitalis.Core.Services
                 AddReaction("", "", "t, cat");
             }
 
-            
+
             if (reactant.Contains("Cl") || reactant.Contains("Br"))
             {
                 AddReaction("KOH", "", "alcohol");
@@ -71,15 +75,21 @@ namespace Vitalis.Core.Services
                 AddReaction("", "H2SO4", "t");
             }
 
+            //has benzene nucleus
+            if (benzenePattern.Matches(mol))
+            {
+                
+            }
+
             //geminal halogens
             if (Regex.IsMatch(reactant, "\\((Cl|Br)\\)\\((Cl|Br)\\)"))
             {
                 AddReaction("NaNH2", "strong base", "t");
             }
 
-            if (IsSoldiumAlkynide(reactant))
+            if (IsAlkyneWithTripleBondAtTheEnd(reactant, "Na"))
             {
-                
+                AddReaction("ClCH2R", "", "");
             }
 
             void AddReaction(string reagent, string catalyst, string conditions, string followUp = "")
@@ -96,19 +106,19 @@ namespace Vitalis.Core.Services
                 return false;
             }
 
-            if (mol.Count(x=>x=='C') < 3)
+            if (mol.Count(x => x == 'C') < 3)
             {
                 return false;
             }
 
             int endOfBoundLen = endOfBond.Length;
 
-            if (mol[len-2 - endOfBoundLen] == '#' && mol[len-1 - endOfBoundLen] == 'C')
+            if (mol[len - 2 - endOfBoundLen] == '#' && mol[len - 1 - endOfBoundLen] == 'C')
             {
                 return true;
             }
 
-            if (mol[1] == '#' && mol[0] == 'C')
+            if (mol[1 + endOfBoundLen] == '#' && mol[endOfBoundLen] == 'C' && mol.StartsWith(endOfBond))
             {
                 return true;
             }
@@ -116,28 +126,10 @@ namespace Vitalis.Core.Services
             return false;
         }
 
-        private bool MatchPattern(string mol, string match)
-        {
-            //match: RC#C
-            GetBranches(mol);
-        }
-
-        private List<string> GetBranches(string mol)
-        {
-            List<string> branches = new List<string>();
-
-        }
-
-        static string GetTextBetween(string text, string start, string end)
-        {
-            int startIndex = text.IndexOf(start) + 1;
-            int endIndex = text.IndexOf(end, startIndex);
-            string result = text.Substring(startIndex, endIndex - startIndex);
-            return result;
-        }
 
         private bool ContainsHexagon(string mol)
         {
+            //TODO
             string newMol = Regex.Replace(mol, "\\(\\w+\\)", "");
             return Regex.IsMatch(newMol, "(?<g>[0-9]+)C{5}\\k<g>");
         }
