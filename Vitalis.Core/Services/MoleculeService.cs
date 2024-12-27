@@ -29,6 +29,7 @@ namespace Vitalis.Core.Services
         private readonly SmartsPattern aminoarenesPattern = SmartsPattern.Create("[a][NH2]");
         private readonly SmartsPattern diazoniumPattern = SmartsPattern.Create("[a][N+]#N");
         private readonly SmartsPattern carboxylicAcidPattern = SmartsPattern.Create("[CX3](=O)[OX2H]");
+        private readonly SmartsPattern hexagonPattern = SmartsPattern.Create("C1CCCCC1");
 
         public MoleculeService(IConfiguration _config)
         {
@@ -44,14 +45,14 @@ namespace Vitalis.Core.Services
 
             List<Reaction> reactions = new List<Reaction>();
             AddReaction("Cl2", "", "hv");
-            AddReaction("Br2", "", "hv");
+            AddReaction("Br\u2082", "", "hv");
             AddReaction("HNO3", "", "t");
             AddReaction("H2SO4", "", "t");
 
             //dehydration
             AddReaction("", "", "t");
 
-            if (ContainsHexagon(reactant))
+            if (hexagonPattern.Matches(mol))
             {
                 AddReaction("", "", "t, cat");
             }
@@ -228,14 +229,6 @@ namespace Vitalis.Core.Services
             {
                 reactions.Add(new Reaction(reagent, catalyst, conditions, followUp));
             }
-        }
-
-
-        private bool ContainsHexagon(string mol)
-        {
-            //TODO
-            string newMol = Regex.Replace(mol, "\\(\\w+\\)", "");
-            return Regex.IsMatch(newMol, "(?<g>[0-9]+)C{5}\\k<g>");
         }
     }
 }

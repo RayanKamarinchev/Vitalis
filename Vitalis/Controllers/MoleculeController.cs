@@ -17,9 +17,9 @@ namespace Vitalis.Controllers
         }
 
         [HttpGet("getReactions")]
-        public List<Reaction> GetReactions([FromBody] SingleValueJson input)
+        public List<Reaction> GetReactions(string reactant)
         {
-            var res = moleculeService.GetPossibleReactions(input.Reactant);
+            var res = moleculeService.GetPossibleReactions(reactant);
             return res;
         }
     }
