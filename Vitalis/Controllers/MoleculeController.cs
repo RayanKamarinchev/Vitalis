@@ -22,6 +22,15 @@ namespace Vitalis.Controllers
             var res = moleculeService.GetPossibleReactions(reactant);
             return res;
         }
+
+        [HttpGet("predictProduct")]
+        public async Task<string> PredictProduct(string reactant, string reagent, string catalyst = "", string conditions = "",
+            string followUp = "")
+        {
+            string product = await moleculeService.PredictProduct(reactant, reagent, catalyst, conditions, followUp);
+            return product;
+            //return "CC(Cl)C";
+        }
     }
 
     public class SingleValueJson

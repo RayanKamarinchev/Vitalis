@@ -3,8 +3,13 @@ using NCDK.SMARTS;
 using NCDK.Smiles;
 using NCDK;
 using System.Text.RegularExpressions;
+using NCDK.IO.Formats;
 using Vitalis.Core.Contracts;
 using Vitalis.Core.Models.Chemistry;
+using Newtonsoft.Json;
+using OpenAI.Chat;
+using Vitalis.Core.Models;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Vitalis.Core.Services
 {
@@ -229,6 +234,54 @@ namespace Vitalis.Core.Services
             {
                 reactions.Add(new Reaction(reagent, catalyst, conditions, followUp));
             }
+        }
+
+
+
+        public async Task<string> PredictProduct(string reactant, string reagent, string catalyst, string conditions, string followUp)
+        {
+            string reactionPrompt = $"{reactant} + {reagent}, catalyst: {catalyst}, under conditions: {conditions}";
+            if (followUp != "")
+            {
+                reactionPrompt += $", next step: {followUp}";
+            }
+
+            ChatClient client = new(model: "gpt-4o", apiKey: config["openAiApiKey"]);
+
+            string prompt = "output json with the structure formula and the valid SMILES formula of the main product of the reaction:\n" + reactionPrompt;
+            ChatCompletionOptions options = new()
+            {
+                ResponseFormat = ChatResponseFormat.CreateJsonSchemaFormat(
+                    jsonSchemaFormatName: "product",
+                    jsonSchema: BinaryData.FromBytes("""
+                                                     {
+                                                         "type": "object",
+                                                         "properties": {
+                                                            "reactant1": { "type": "string" },
+                                                            "reactant2": { "type": "string" },
+                                                            "explanation": { "type": "string" },
+                                                            "reactionEquation": { "type": "string" },
+                                                            "product": { "type": "string" },
+                                                            "productInSMILES": { "type": "string" }
+                                                         },
+                                                         "required": ["reactant1", "reactant2", "explanation", "reactionEquation", "product", "productInSMILES"],
+                                                         "additionalProperties": false
+                                                     }
+                                                     """u8.ToArray()),
+                    jsonSchemaIsStrict: true)
+            };
+
+            List<ChatMessage> messages =
+            [
+                new UserChatMessage(prompt),
+            ];
+            ChatCompletion completion = await client.CompleteChatAsync(messages, options);
+            string response = completion.Content[0].Text;
+            //convert response to json
+            Response json = JsonConvert.DeserializeObject<Response>(response);
+            string res = json.ProductInSMILES.Replace(" ", String.Empty);
+
+            return res;
         }
     }
 }
