@@ -32,6 +32,8 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddControllers().AddNewtonsoftJson();
 
 builder.Services.AddScoped<IMoleculeService, MoleculeService>();
+builder.Services.AddScoped<ITestService, TestService>();
+builder.Services.AddScoped<ITestResultsService, TestResultsService>();
 
 var app = builder.Build();
 

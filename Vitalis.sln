@@ -5,7 +5,9 @@ VisualStudioVersion = 17.9.34728.123
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vitalis", "Vitalis\Vitalis.csproj", "{0FB13222-51FF-4710-97CC-DCB7B5FDF9CE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vitalis.Core", "Vitalis.Core\Vitalis.Core.csproj", "{86457FC1-8B24-4C13-A4A8-32E953537EF2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vitalis.Core", "Vitalis.Core\Vitalis.Core.csproj", "{86457FC1-8B24-4C13-A4A8-32E953537EF2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vitalis.Data", "Vitalis.Data\Vitalis.Data.csproj", "{170C99CC-7195-4E37-83FA-CE1D27811700}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{86457FC1-8B24-4C13-A4A8-32E953537EF2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{86457FC1-8B24-4C13-A4A8-32E953537EF2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{86457FC1-8B24-4C13-A4A8-32E953537EF2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{170C99CC-7195-4E37-83FA-CE1D27811700}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{170C99CC-7195-4E37-83FA-CE1D27811700}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{170C99CC-7195-4E37-83FA-CE1D27811700}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{170C99CC-7195-4E37-83FA-CE1D27811700}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
