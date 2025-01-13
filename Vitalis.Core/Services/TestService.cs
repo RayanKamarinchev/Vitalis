@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using NCDK.Tools;
 using Vitalis.Core.Contracts;
 using Vitalis.Core.Infrastructure;
 using Vitalis.Core.Models.Questions;
@@ -24,14 +25,16 @@ namespace Vitalis.Core.Services
             ? 0
             : t.Average(tr => tr.Score), 2);
 
-        private Func<Test, TestViewModel> ToViewModel = t => new TestViewModel()
+        private Func<Test,string, TestViewModel> ToViewModel = (t, userId) => new TestViewModel()
         {
             AverageScore = CalculateAverageScore(t.TestResults),
-            CreatedOn = t.CreatedOn,
+            CreatedOn = t.CreatedOn.ToShortDateString(),
             Description = t.Description,
             Grade = t.Grade,
             Id = t.Id,
             Title = t.Title,
+            IsCreator = t.CreatorId == userId,
+            IsTestTaken = t.TestResults.Any(tr => tr.TestTakerId == userId),
         };
 
         private Func<Test, RawTestViewModel> ToRawViewModel = t => new RawTestViewModel()
@@ -102,7 +105,7 @@ namespace Vitalis.Core.Services
                                 .Include(t => t.ClosedQuestions)
                                 .Include(t => t.OpenQuestions)
                                 .Include(g => g.TestResults)
-                                .Select(x => ToViewModel(x));
+                                .Select(x => ToViewModel(x, userId));
             var tests = await dbTests.ToListAsync();
             query.Items = tests;
             query.TotalItemsCount = tests.Count;
@@ -142,7 +145,7 @@ namespace Vitalis.Core.Services
                 return null;
             }
 
-            return ToViewModel(test);
+            return ToViewModel(test, userId);
         }
 
         public async Task<TestSubmitViewModel?> GetTestSubmitViewModel(Guid testId, string userId)
@@ -316,21 +319,34 @@ namespace Vitalis.Core.Services
             return await Filter(testsQuery, query, userId);
         }
 
-        public async Task<Guid> Create(TestViewModel model, string userId)
+        public async Task<Guid> Create(TestCreateViewModel model, string userId)
         {
-            string groupsString = string.Join(Constants.SeparationCharacter, model.Groups.Select(x => (int)x));
             Test test = new Test()
             {
                 Title = model.Title,
                 Description = model.Description,
-                Groups = groupsString,
+                Groups = BoolArrayToString(model.Groups),
                 Grade = model.Grade,
                 CreatedOn = DateTime.Now,
-                CreatorId = userId
+                CreatorId = userId,
+                IsPublic = model.IsPublic
             };
             var e = await context.Tests.AddAsync(test);
             await context.SaveChangesAsync();
             return e.Entity.Id;
+        }
+
+        private string BoolArrayToString(bool[] array)
+        {
+            List<int> resultIndexes = new List<int>();
+            for (int i = 0; i < array.Length; i++)
+            {
+                if (array[i])
+                {
+                    resultIndexes.Add(i);
+                }
+            }
+            return string.Join(Constants.SeparationCharacter, resultIndexes);
         }
 
         public async Task<bool> TestExistsById(Guid id)

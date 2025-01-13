@@ -1,6 +1,6 @@
-﻿using IntelliTest.Core.Models.Questions;
-using Vitalis.Core.Models.Questions;
+﻿using Vitalis.Core.Models.Questions;
 using Vitalis.Core.Models.Questions.Closed;
+using Vitalis.Core.Models.Questions.Open;
 
 namespace Vitalis.Core.Models.Tests
 {

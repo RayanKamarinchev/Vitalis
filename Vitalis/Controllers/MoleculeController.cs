@@ -17,18 +17,18 @@ namespace Vitalis.Controllers
         }
 
         [HttpGet("getReactions")]
-        public List<Reaction> GetReactions(string reactant)
+        public IActionResult GetReactions(string reactant)
         {
             var res = moleculeService.GetPossibleReactions(reactant);
-            return res;
+            return Ok(res);
         }
 
         [HttpGet("predictProduct")]
-        public async Task<string> PredictProduct(string reactant, string reagent, string catalyst = "", string conditions = "",
+        public async Task<IActionResult> PredictProduct(string reactant, string reagent, string catalyst = "", string conditions = "",
             string followUp = "")
         {
             string product = await moleculeService.PredictProduct(reactant, reagent, catalyst, conditions, followUp);
-            return product;
+            return Ok(product);
             //return "CC(Cl)C";
         }
     }

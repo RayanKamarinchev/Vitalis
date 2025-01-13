@@ -1,29 +1,27 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Caching.Memory;
+﻿using Microsoft.AspNetCore.Mvc;
 using Vitalis.Core.Contracts;
 using Vitalis.Core.Infrastructure;
 using Vitalis.Core.Models.Questions;
 using Vitalis.Core.Models.Questions.Closed;
 using Vitalis.Core.Models.Questions.Open;
 using Vitalis.Core.Models.Tests;
-using CacheExtensions = Microsoft.Extensions.Caching.Memory.CacheExtensions;
 
 namespace Vitalis.Controllers
 {
     [ApiController]
+    [Route("tests")]
     public class TestsController : ControllerBase
     {
         private readonly ITestService testService;
         private readonly ITestResultsService testResultsService;
-        private readonly IMemoryCache cache;
+        //private readonly IMemoryCache cache;
         private readonly IWebHostEnvironment webHostEnvironment;
         private readonly Random random = new Random();
 
-        public TestsController(ITestService _testService, IMemoryCache _cache, ITestResultsService testResultsService, IWebHostEnvironment webHostEnvironment)
+        public TestsController(ITestService _testService, ITestResultsService testResultsService, IWebHostEnvironment webHostEnvironment)
         {
             testService = _testService;
-            cache = _cache;
+            //cache = _cache;
             this.testResultsService = testResultsService;
             this.webHostEnvironment = webHostEnvironment;
         }
@@ -32,30 +30,22 @@ namespace Vitalis.Controllers
         public async Task<IActionResult> Index(string searchTerm, int grade, List<OrganicGroup> groups, Sorting sorting,
             int currentPage)
         {
-            if (CacheExtensions.TryGetValue(cache, Constants.TestsCacheKey, out QueryModel<TestViewModel>? model) && false)
+            if (currentPage == 0)
             {
+                currentPage = 1;
             }
-            else
-            {
-                if (currentPage == 0)
-                {
-                    currentPage = 1;
-                }
 
-                QueryModel<TestViewModel> query =
-                    new QueryModel<TestViewModel>(searchTerm, grade, groups, sorting, currentPage);
-                model = await testService.GetAll(query);
-                //var cacheEntryOptions = new DistributedCacheEntryOptions()
-                //    .SetSlidingExpiration(TimeSpan.FromMinutes(10));
-                var cacheEntryOptions = new MemoryCacheEntryOptions()
-                    .SetSlidingExpiration(TimeSpan.FromMinutes(5));
-                cache.SetAsync(Constants.TestsCacheKey, model, cacheEntryOptions);
-            }
+            QueryModel<TestViewModel> query =
+                new QueryModel<TestViewModel>(searchTerm, grade, groups, sorting, currentPage);
+            var model = await testService.GetAll(query);
+            //var cacheEntryOptions = new DistributedCacheEntryOptions()
+            //    .SetSlidingExpiration(TimeSpan.FromMinutes(10));
+            //cache.SetAsync(Constants.TestsCacheKey, model, cacheEntryOptions);
 
             return Ok(model);
         }
 
-        [HttpGet]
+        [HttpGet("mine")]
         public async Task<QueryModel<TestViewModel>> MyTests([FromQuery] QueryModel<TestViewModel> query)
         {
             //get user id
@@ -63,7 +53,7 @@ namespace Vitalis.Controllers
             return model;
         }
 
-        [Route("Tests/Edit/{testId}")]
+        [Route("edit/{testId}")]
         [HttpGet]
         public async Task<IActionResult> Edit(Guid testId)
         {
@@ -94,7 +84,7 @@ namespace Vitalis.Controllers
         }
 
         [HttpPost]
-        [Route("Tests/Edit/{testId}/{groupId}")]
+        [Route("edit/{testId}/{groupId}")]
         public async Task<IActionResult> Edit(Guid testId, [FromForm] TestEditViewModel model)
         {
             model.OpenQuestions ??= new List<OpenQuestionViewModel>();
@@ -137,9 +127,10 @@ namespace Vitalis.Controllers
             return closedQuestions.All(c => c.AnswerIndexes.Any(ai => ai));
         }
 
-        [HttpPost]
-        public async Task<IActionResult> Create(TestViewModel model)
+        [HttpPost("create")]
+        public async Task<IActionResult> Create(TestCreateViewModel model)
         {
+            model.Grade += 7;
             if (ModelState.ErrorCount != 1 && !ModelState.IsValid)
             {
                 return BadRequest();
@@ -150,7 +141,7 @@ namespace Vitalis.Controllers
         }
 
         [HttpGet]
-        [Route("Tests/Take/{testId}")]
+        [Route("take/{testId}")]
         public async Task<IActionResult> Take(Guid testId)
         {
             var test = await testService.GetTestSubmitViewModel(testId, User.Id());
@@ -168,7 +159,7 @@ namespace Vitalis.Controllers
         }
 
         [HttpPost]
-        [Route("Tests/Take/{testId}")]
+        [Route("take/{testId}")]
         public async Task<IActionResult> Take([FromBody] TestSubmitViewModel model, Guid testId)
         {
             if (!await testService.TestExistsById(testId))
@@ -201,7 +192,7 @@ namespace Vitalis.Controllers
         }
 
         [HttpGet]
-        [Route("Tests/Review/{testId}/{studentId}")]
+        [Route("review/{testId}/{studentId}")]
         public async Task<IActionResult> ReviewAnswers(Guid testId, string studentId)
         {
             if (!await testService.TestExistsById(testId))
@@ -218,8 +209,7 @@ namespace Vitalis.Controllers
             return Ok(test);
         }
 
-        [HttpGet]
-        [Authorize(Roles = "Teacher,Admin")]
+        [HttpGet("stats")]
         public async Task<IActionResult> Statistics(Guid testId)
         {
             if (!await testService.IsTestCreator(testId, User.Id()))
@@ -233,7 +223,7 @@ namespace Vitalis.Controllers
         }
 
         [HttpGet]
-        [Route("Test/Delete/{Id}")]
+        [Route("delete/{Id}")]
         public async Task<IActionResult> Delete(Guid id)
         {
             if (!await testService.IsTestCreator(id, User.Id()))

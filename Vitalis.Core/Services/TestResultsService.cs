@@ -1,5 +1,4 @@
-﻿using IntelliTest.Core.Models.Questions;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Vitalis.Core.Contracts;
 using Vitalis.Core.Infrastructure;

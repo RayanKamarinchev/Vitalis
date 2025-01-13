@@ -1,6 +1,4 @@
-﻿using IntelliTest.Core.Models.Questions;
-
-namespace Vitalis.Core.Models.Questions.Closed
+﻿namespace Vitalis.Core.Models.Questions.Closed
 {
     public class ClosedQuestionViewModel : QuestionViewModel
     {

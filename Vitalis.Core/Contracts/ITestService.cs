@@ -22,7 +22,7 @@ namespace Vitalis.Core.Contracts
         Task<QueryModel<TestViewModel>> TestsTakenByStudent(string userId,
             QueryModel<TestViewModel> query);
 
-        Task<Guid> Create(TestViewModel model, string userId);
+        Task<Guid> Create(TestCreateViewModel model, string userId);
 
         Task<bool> TestExistsById(Guid id);
 
