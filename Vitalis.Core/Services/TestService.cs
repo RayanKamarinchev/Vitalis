@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using NCDK.Tools;
 using Vitalis.Core.Contracts;
 using Vitalis.Core.Infrastructure;
 using Vitalis.Core.Models.Questions;
@@ -25,7 +24,7 @@ namespace Vitalis.Core.Services
             ? 0
             : t.Average(tr => tr.Score), 2);
 
-        private Func<Test,string, TestViewModel> ToViewModel = (t, userId) => new TestViewModel()
+        private Func<Test, string, TestViewModel> ToViewModel = (t, userId) => new TestViewModel()
         {
             AverageScore = CalculateAverageScore(t.TestResults),
             CreatedOn = t.CreatedOn.ToShortDateString(),
@@ -35,6 +34,7 @@ namespace Vitalis.Core.Services
             Title = t.Title,
             IsCreator = t.CreatorId == userId,
             IsTestTaken = t.TestResults.Any(tr => tr.TestTakerId == userId),
+            QuestionsCount = t.ClosedQuestions.Count + t.OpenQuestions.Count,
         };
 
         private Func<Test, RawTestViewModel> ToRawViewModel = t => new RawTestViewModel()
@@ -50,7 +50,7 @@ namespace Vitalis.Core.Services
 
         private List<QuestionType> ProcessQuestionOrder(string questionOrderText)
         {
-            return questionOrderText.Split(Constants.SeparationCharacter)
+            return questionOrderText.Split(Constants.SeparationCharacter, StringSplitOptions.RemoveEmptyEntries)
                                     .Select(q => q == "O" ? QuestionType.Open : QuestionType.Closed)
             .ToList();
         }
@@ -58,10 +58,9 @@ namespace Vitalis.Core.Services
         private async Task<QueryModel<TestViewModel>> Filter(IQueryable<Test> testQuery, QueryModel<TestViewModel> query,
             string userId = "")
         {
-            testQuery = testQuery.Where(t => !t.Groups.Split(Constants.SeparationCharacter, StringSplitOptions.None)
-                                               .Select(x => (OrganicGroup)int.Parse(x))
-                                               .Except(query.Filters.Groups)
-                                               .Any());
+            testQuery = testQuery.Where(t => !query.Filters.Groups
+                                                   .Except(t.Groups.Select(x => x.OrganicGroupId))
+                                                   .Any());
 
             if (query.Filters.Grade >= 1 && query.Filters.Grade <= 12)
             {
@@ -108,17 +107,17 @@ namespace Vitalis.Core.Services
                                 .Select(x => ToViewModel(x, userId));
             var tests = await dbTests.ToListAsync();
             query.Items = tests;
-            query.TotalItemsCount = tests.Count;
+            query.TotalPages = (int)Math.Ceiling(tests.Count * 1.0 / query.ItemsPerPage);
             return query;
         }
 
-        public async Task<QueryModel<TestViewModel>> GetAll(QueryModel<TestViewModel> query)
+        public async Task<QueryModel<TestViewModel>> GetAll(QueryModel<TestViewModel> query, string userId)
         {
             var testQuery = context.Tests
                                    .Include(t => t.TestResults)
                                    .Include(t => t.TestLikes)
                                    .Where(t => !t.IsDeleted && t.IsPublic);
-            return await Filter(testQuery, query);
+            return await Filter(testQuery, query, userId);
         }
 
         public async Task<QueryModel<TestViewModel>> GetMy(string userId,
@@ -176,7 +175,7 @@ namespace Vitalis.Core.Services
                                       .Where(q => !q.IsDeleted)
                                       .Select(q => new ClosedQuestionViewModel()
                                       {
-                                          Answers = q.Answers.Split(Constants.SeparationCharacter),
+                                          Options = q.Answers.Split(Constants.SeparationCharacter),
                                           IsDeleted = false,
                                           Text = q.Text,
                                           Id = q.Id,
@@ -229,7 +228,7 @@ namespace Vitalis.Core.Services
                                                             .Select(q => q.indx)),
                                                        Answers = string.Join(
                                                            Constants.SeparationCharacter,
-                                                           q.Answers.Where(a =>
+                                                           q.Options.Where(a =>
                                                                !string.IsNullOrEmpty(a))),
                                                        MaxScore = q.MaxScore,
                                                        ImagePath = q.ImagePath
@@ -278,7 +277,7 @@ namespace Vitalis.Core.Services
 
                 question.Text = modelQuestion.Text;
                 question.Answers = string.Join(
-                    Constants.SeparationCharacter, modelQuestion.Answers.Where(a => !string.IsNullOrEmpty(a)));
+                    Constants.SeparationCharacter, modelQuestion.Options.Where(a => !string.IsNullOrEmpty(a)));
 
                 question.AnswerIndexes = string.Join(Constants.SeparationCharacter, modelQuestion.AnswerIndexes
                                                                        .Select((val, indx) =>
@@ -292,7 +291,7 @@ namespace Vitalis.Core.Services
 
         private static bool CheckForSameAnswers(ClosedQuestionViewModel questionViewModel, string savedQuestionAnswers)
         {
-            return string.Join("&", questionViewModel.Answers.Where(a => !string.IsNullOrEmpty(a))) ==
+            return string.Join("&", questionViewModel.Options.Where(a => !string.IsNullOrEmpty(a))) ==
                    savedQuestionAnswers;
         }
 
@@ -321,33 +320,39 @@ namespace Vitalis.Core.Services
 
         public async Task<Guid> Create(TestCreateViewModel model, string userId)
         {
+            //var groupIds = BoolArrayToIndexes(model.Groups);
+            var groups = await context.OrganicGroups.Where(x => model.Groups[x.Id]).ToListAsync();
             Test test = new Test()
             {
                 Title = model.Title,
                 Description = model.Description,
-                Groups = BoolArrayToString(model.Groups),
                 Grade = model.Grade,
-                CreatedOn = DateTime.Now,
+                CreatedOn = DateTime.UtcNow,
                 CreatorId = userId,
-                IsPublic = model.IsPublic
+                IsPublic = model.IsPublic,
+                QuestionsOrder = "",
+                Groups = groups.Select(x=> new TestOrganicGroup()
+                {
+                    OrganicGroup = x
+                }).ToList()
             };
             var e = await context.Tests.AddAsync(test);
             await context.SaveChangesAsync();
             return e.Entity.Id;
         }
 
-        private string BoolArrayToString(bool[] array)
-        {
-            List<int> resultIndexes = new List<int>();
-            for (int i = 0; i < array.Length; i++)
-            {
-                if (array[i])
-                {
-                    resultIndexes.Add(i);
-                }
-            }
-            return string.Join(Constants.SeparationCharacter, resultIndexes);
-        }
+        //private List<int> BoolArrayToIndexes(bool[] array)
+        //{
+        //    List<int> resultIndexes = new List<int>();
+        //    for (int i = 0; i < array.Length; i++)
+        //    {
+        //        if (array[i])
+        //        {
+        //            resultIndexes.Add(i);
+        //        }
+        //    }
+        //    return resultIndexes;
+        //}
 
         public async Task<bool> TestExistsById(Guid id)
         {
@@ -381,15 +386,15 @@ namespace Vitalis.Core.Services
             var test = await context.Tests
                                     .Include(t => t.OpenQuestions)
                                     .Include(t => t.ClosedQuestions)
+                                    .Include(test => test.Groups)
                                     .FirstOrDefaultAsync(t => t.Id == testId);
             if (test is null || (!test.IsPublic && test.CreatorId == userId))
             {
                 return null;
             }
 
-            var allOrganicGroups = Enum.GetValues(typeof(OrganicGroup)).Cast<OrganicGroup>();
-            var testsOrganicGroups = test.Groups.Split(Constants.SeparationCharacter)
-                                               .Select(x => (OrganicGroup)int.Parse(x));
+            var allOrganicGroups = Enum.GetValues(typeof(Models.Tests.OrganicGroup)).Cast<int>();
+            var testsOrganicGroups = test.Groups.Select(x => x.OrganicGroupId);
             var checkboxList = allOrganicGroups.Select(x => testsOrganicGroups.Contains(x)).ToList();
 
             var t = new TestEditViewModel()
@@ -410,7 +415,7 @@ namespace Vitalis.Core.Services
                                                .Where(q => !q.IsDeleted)
                                                .Select(q => new ClosedQuestionViewModel()
                                                {
-                                                   Answers = q.Answers.Split(Constants.SeparationCharacter),
+                                                   Options = q.Answers.Split(Constants.SeparationCharacter),
                                                    AnswerIndexes =
                                                                     ProcessAnswerIndexes(q.Answers.Split(Constants.SeparationCharacter),
                                                                         q.AnswerIndexes),

@@ -9,6 +9,7 @@ namespace Vitalis.Core.Models.Tests
         [StringLength(Constants.TestTitleMaxLength, MinimumLength = Constants.TestTitleMinLength)]
         public string Title { get; set; }
         [Required]
+        [Length(12, 12)]
         public bool[] Groups { get; set; }
         [Required]
         [Range(1, 12)]

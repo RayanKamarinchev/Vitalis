@@ -1,4 +1,5 @@
 ﻿using System.Security.Claims;
+using Vitalis.Data.Entities;
 
 namespace Vitalis.Core.Infrastructure
 {
@@ -6,7 +7,7 @@ namespace Vitalis.Core.Infrastructure
     {
         public static string Id(this ClaimsPrincipal user)
         {
-            return user.FindFirstValue(ClaimTypes.NameIdentifier);
+            return user.Claims.FirstOrDefault(c => c.Type == "Id").Value;
         }
     }
 }

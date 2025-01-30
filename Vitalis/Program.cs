@@ -34,7 +34,7 @@ string connectionString = builder.Configuration["ConnectionString"];
 
 builder.Services.AddDbContext<VitalisDbContext>(options =>
         options.UseNpgsql(connectionString)
-    , ServiceLifetime.Singleton);
+    , ServiceLifetime.Scoped);
 
 
 builder.Services.AddIdentity<User, IdentityRole>(options =>

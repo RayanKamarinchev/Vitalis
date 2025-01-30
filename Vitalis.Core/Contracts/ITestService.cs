@@ -5,7 +5,7 @@ namespace Vitalis.Core.Contracts
 {
     public interface ITestService
     {
-        Task<QueryModel<TestViewModel>> GetAll(QueryModel<TestViewModel> query);
+        Task<QueryModel<TestViewModel>> GetAll(QueryModel<TestViewModel> query, string userId);
 
         Task<QueryModel<TestViewModel>> GetMy(string userId, QueryModel<TestViewModel> query);
 

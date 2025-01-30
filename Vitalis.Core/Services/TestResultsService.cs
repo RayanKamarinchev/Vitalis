@@ -149,7 +149,7 @@ namespace Vitalis.Core.Services
                 r.ClosedQuestions.ForEach(q =>
                 {
                     answers.Add(new List<int>());
-                    for (int i = 0; i < q.Answers.Length; ++i)
+                    for (int i = 0; i < q.Options.Length; ++i)
                     {
                         if (q.AnswerIndexes[i])
                         {
@@ -167,7 +167,7 @@ namespace Vitalis.Core.Services
                     {
                         StudentAnswers = allClosedAnswers.Select(a => a[i]).ToList(),
                         Text = res[0].ClosedQuestions[i].Text,
-                        Answers = res[0].ClosedQuestions[i].Answers,
+                        Answers = res[0].ClosedQuestions[i].Options,
                         ImagePath = res[0].ClosedQuestions[i].ImagePath
                     });
                 }
@@ -240,7 +240,7 @@ namespace Vitalis.Core.Services
                 {
                     var closedQuestionModel = new ClosedQuestionReviewViewModel()
                     {
-                        Answers = q.Question.Answers.Split(Constants.SeparationCharacter, System.StringSplitOptions.None),
+                        Options = q.Question.Answers.Split(Constants.SeparationCharacter, System.StringSplitOptions.None),
                         IsDeleted = false,
                         Text = q.Question.Text,
                         Id = q.Id,

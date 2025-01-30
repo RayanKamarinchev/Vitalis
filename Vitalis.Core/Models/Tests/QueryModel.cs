@@ -1,4 +1,6 @@
-﻿namespace Vitalis.Core.Models.Tests
+﻿using Vitalis.Data.Entities;
+
+namespace Vitalis.Core.Models.Tests
 {
     public class QueryModel<T>
     {
@@ -7,7 +9,7 @@
             Filters = new Filter();
         }
 
-        public QueryModel(string SearchTerm, int Grade, List<OrganicGroup> groups, Sorting Sorting, int currentPage)
+        public QueryModel(string SearchTerm, int Grade, List<int> groups, Sorting Sorting, int currentPage)
         {
             Filters = new Filter();
             Filters.SearchTerm = SearchTerm;
@@ -18,7 +20,7 @@
         }
         public int ItemsPerPage { get; set; } = 6;
         public int CurrentPage { get; set; } = 1;
-        public int TotalItemsCount { get; set; }
+        public int TotalPages { get; set; }
         public Filter Filters { get; set; }
         public IEnumerable<T> Items { get; set; } = new List<T>();
     }

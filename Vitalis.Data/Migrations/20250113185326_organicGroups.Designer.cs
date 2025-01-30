@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Vitalis.Data;
@@ -11,9 +12,11 @@ using Vitalis.Data;
 namespace Vitalis.Data.Migrations
 {
     [DbContext(typeof(VitalisDbContext))]
-    partial class VitalisDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250113185326_organicGroups")]
+    partial class organicGroups
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

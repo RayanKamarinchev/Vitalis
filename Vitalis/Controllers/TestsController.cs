@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Vitalis.Core.Contracts;
 using Vitalis.Core.Infrastructure;
 using Vitalis.Core.Models.Questions;
@@ -9,6 +10,7 @@ using Vitalis.Core.Models.Tests;
 namespace Vitalis.Controllers
 {
     [ApiController]
+    [Authorize]
     [Route("tests")]
     public class TestsController : ControllerBase
     {
@@ -27,9 +29,10 @@ namespace Vitalis.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Index(string searchTerm, int grade, List<OrganicGroup> groups, Sorting sorting,
-            int currentPage)
+        public async Task<IActionResult> Index(string searchTerm = "", int grade = 0, List<int>? groups = null, Sorting sorting = Sorting.TestTakers,
+            int currentPage = 1)
         {
+            groups = new List<int>();
             if (currentPage == 0)
             {
                 currentPage = 1;
@@ -37,7 +40,7 @@ namespace Vitalis.Controllers
 
             QueryModel<TestViewModel> query =
                 new QueryModel<TestViewModel>(searchTerm, grade, groups, sorting, currentPage);
-            var model = await testService.GetAll(query);
+            var model = await testService.GetAll(query, User.Id());
             //var cacheEntryOptions = new DistributedCacheEntryOptions()
             //    .SetSlidingExpiration(TimeSpan.FromMinutes(10));
             //cache.SetAsync(Constants.TestsCacheKey, model, cacheEntryOptions);
@@ -84,10 +87,10 @@ namespace Vitalis.Controllers
         }
 
         [HttpPost]
-        [Route("edit/{testId}/{groupId}")]
-        public async Task<IActionResult> Edit(Guid testId, [FromForm] TestEditViewModel model)
+        [Route("edit/{testId}")]
+        public async Task<IActionResult> Edit(Guid testId, TestEditViewModel model)
         {
-            model.OpenQuestions ??= new List<OpenQuestionViewModel>();
+            model.OpenQuestions ??= new List<OpenQuestionViewModel>(); 
             model.ClosedQuestions ??= new List<ClosedQuestionViewModel>();
             model.QuestionsOrder ??= new List<QuestionType>();
 
@@ -114,7 +117,7 @@ namespace Vitalis.Controllers
                 return NotFound();
             }
             //TODO questionable response
-            return Content("redirect");
+            return Content("success");
         }
 
         private bool AllQuestionsHaveAnswerIndexes(List<ClosedQuestionViewModel> closedQuestions)
@@ -130,14 +133,12 @@ namespace Vitalis.Controllers
         [HttpPost("create")]
         public async Task<IActionResult> Create(TestCreateViewModel model)
         {
-            model.Grade += 7;
             if (ModelState.ErrorCount != 1 && !ModelState.IsValid)
             {
                 return BadRequest();
             }
-
             Guid id = await testService.Create(model, User.Id());
-            return RedirectToAction("Edit", new { id = id });
+            return Ok(id);
         }
 
         [HttpGet]

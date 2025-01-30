@@ -11,7 +11,7 @@ namespace Vitalis.Core.Models.Tests
         [StringLength(Constants.TestTitleMaxLength, MinimumLength = Constants.TestTitleMinLength)]
         public string Title { get; set; }
         [Required]
-        public List<OrganicGroup> Groups { get; set; }
+        public List<int> Groups { get; set; }
         [Required]
         [Range(1, 12)]
         public int Grade { get; set; }
@@ -28,5 +28,6 @@ namespace Vitalis.Core.Models.Tests
         public string CreatedOn { get; set; }
         public bool IsCreator { get; set; }
         public bool IsTestTaken { get; set; }
+        public int QuestionsCount { get; set; }
     }
 }

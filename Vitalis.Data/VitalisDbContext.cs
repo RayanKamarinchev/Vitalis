@@ -25,6 +25,8 @@ namespace Vitalis.Data
                    .HasKey(p => new { p.TestId, p.UserId });
             builder.Entity<TestResult>()
                    .HasKey(p => new { p.TestId, p.TestTakerId });
+            builder.Entity<TestOrganicGroup>()
+                   .HasKey(p => new { p.TestId, p.OrganicGroupId });
 
             base.OnModelCreating(builder);
         }
@@ -35,5 +37,7 @@ namespace Vitalis.Data
         public DbSet<OpenQuestion> OpenQuestions { get; set; }
         public DbSet<ClosedQuestion> ClosedQuestions { get; set; }
         public DbSet<TestResult> TestResults { get; set; }
+        public DbSet<TestOrganicGroup> TestOrganicGroups { get; set; }
+        public DbSet<OrganicGroup> OrganicGroups { get; set; }
     }
 }

@@ -7,7 +7,7 @@ namespace Vitalis.Core.Models.Tests
     {
         public string SearchTerm { get; set; }
         public Sorting Sorting { get; set; }
-        public List<OrganicGroup> Groups { get; set; }
+        public List<int> Groups { get; set; }
         public int Grade { get; set; }
     }
 }

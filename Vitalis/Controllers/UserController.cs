@@ -87,8 +87,7 @@ namespace Vitalis.Controllers
 
             var claims = new[] {
                 new Claim(JwtRegisteredClaimNames.Email, userInfo.Email),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim(ClaimTypes.NameIdentifier, userInfo.Id)
+                new Claim("Id", userInfo.Id)
             };
 
             var tokenExpiry = rememberMe ? DateTime.Now.AddDays(30) : DateTime.Now.AddMinutes(120);
