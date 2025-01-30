@@ -189,7 +189,7 @@ namespace Vitalis.Controllers
 
             await testResultsService.SaveStudentTestAnswer(model.OpenQuestions, model.ClosedQuestions, testId, User.Id());
 
-            return Ok("redirect");
+            return Ok("success");
         }
 
         [HttpGet]

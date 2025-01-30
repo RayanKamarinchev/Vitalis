@@ -87,7 +87,7 @@ namespace Vitalis.Core.Services
                 Score = 0,
                 TestId = testId,
                 TestTakerId = userId,
-                TakenOn = DateTime.Now
+                TakenOn = DateTime.UtcNow
             });
             await context.SaveChangesAsync();
         }

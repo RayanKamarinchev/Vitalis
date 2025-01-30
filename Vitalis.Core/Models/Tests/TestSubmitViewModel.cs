@@ -9,7 +9,7 @@ namespace Vitalis.Core.Models.Tests
     {
         public List<OpenQuestionSubmitViewModel> OpenQuestions { get; set; }
         public List<ClosedQuestionViewModel> ClosedQuestions { get; set; }
-        public List<QuestionType> QuestionOrder;
+        public List<QuestionType> QuestionsOrder;
         [Display(Name = "Заглавие: ")]
         public string Title { get; set; }
         public Guid Id { get; set; }

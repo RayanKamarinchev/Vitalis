@@ -2,6 +2,6 @@
 {
     public class OpenQuestionSubmitViewModel : OpenQuestionViewModel
     {
-        public string CorrectAnswer { get; set; }
+        public string? CorrectAnswer { get; set; }
     }
 }

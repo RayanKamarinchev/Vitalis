@@ -94,11 +94,6 @@ namespace Vitalis.Core.Services
                 testQuery = testQuery.OrderByDescending(t => t.TestResults.Average(r => r.Score));
             }
 
-            if (userId != String.Empty)
-            {
-                testQuery = testQuery.Where(t => t.CreatorId == userId);
-            }
-
             var dbTests = testQuery.Skip(query.ItemsPerPage * (query.CurrentPage - 1))
                                 .Take(query.ItemsPerPage)
                                 .Include(t => t.ClosedQuestions)
@@ -126,7 +121,7 @@ namespace Vitalis.Core.Services
             var testQuery = context.Tests
                                    .Include(g => g.TestResults)
                                    .Include(t => t.TestLikes)
-                                   .Where(t => !t.IsDeleted);
+                                   .Where(t => !t.IsDeleted && t.CreatorId == userId);
             return await Filter(testQuery, query, userId);
         }
 
@@ -168,7 +163,7 @@ namespace Vitalis.Core.Services
                                         Id = q.Id,
                                         MaxScore = q.MaxScore,
                                         ImagePath = q.ImagePath,
-                                        CorrectAnswer = q.Answer
+                                        Answer = ""
                                     })
                                     .ToList(),
                 ClosedQuestions = test.ClosedQuestions
@@ -185,7 +180,7 @@ namespace Vitalis.Core.Services
                                               new bool[q.Answers.Count(x => x == Constants.SeparationCharacter) + 1]
                                       })
                                       .ToList(),
-                QuestionOrder = ProcessQuestionOrder(test.QuestionsOrder),
+                QuestionsOrder = ProcessQuestionOrder(test.QuestionsOrder),
                 Title = test.Title,
                 Id = test.Id,
             };
@@ -314,6 +309,7 @@ namespace Vitalis.Core.Services
             var testsQuery = context.TestResults
                                     .Include(g => g.Test)
                                     .ThenInclude(t => t.TestLikes)
+                                    .Where(t => t.TestTakerId == userId)
                                     .Select(tr => tr.Test);
             return await Filter(testsQuery, query, userId);
         }
