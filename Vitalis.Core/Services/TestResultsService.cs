@@ -52,22 +52,32 @@ namespace Vitalis.Core.Services
             {
                 return;
             }
+            var test = await context.Tests
+                                 .Include(t => t.ClosedQuestions)
+                                 .Include(t=>t.OpenQuestions)
+                                 .FirstOrDefaultAsync(t => t.Id == testId);
 
             var open = openQuestions?.Select(q => new OpenQuestionAnswer()
             {
                 Answer = q.Answer,
                 QuestionId = q.Id,
                 UserId = userId,
-                Points = q.CorrectAnswer == q.Answer ? q.MaxScore : 0
+                Points = test.OpenQuestions.FirstOrDefault(x=>x.Id == q.Id).Answer == q.Answer ? q.MaxScore : 0
             });
-            var closed = closedQuestions?.Select(q => new ClosedQuestionAnswer()
+            var closed = closedQuestions?.Select(q =>
             {
-                AnswerIndexes = string.Join("&", q.AnswerIndexes
-                                                              .Select((val, indx) => new { val, indx })
-                                                              .Where(q => q.val)
-                                                              .Select(q => q.indx)),
-                QuestionId = q.Id,
-                UserId = userId
+                var closedQuestion = test.ClosedQuestions.FirstOrDefault(x => x.Id == q.Id);
+                return new ClosedQuestionAnswer()
+                {
+                    AnswerIndexes = string.Join("&", q.AnswerIndexes
+                                                      .Select((val, indx) => new { val, indx })
+                                                      .Where(q => q.val)
+                                                      .Select(q => q.indx)),
+                    QuestionId = q.Id,
+                    UserId = userId,
+                    Points = CalculateClosedQuestionScore(q.AnswerIndexes,
+                        closedQuestion.Answers.Split('&').Select(int.Parse).ToArray(), (decimal)closedQuestion.MaxScore)
+                };
             });
 
             if (open != null)
@@ -92,18 +102,24 @@ namespace Vitalis.Core.Services
             await context.SaveChangesAsync();
         }
 
-        public float CalculateClosedQuestionScore(bool[] Answers, int[] RightAnswers, float MaxScore)
+        private decimal CalculateClosedQuestionScore(bool[] answers, int[] correctAnswers, decimal maxScore)
         {
-            float score = 0;
-            for (int i = 0; i < Answers.Length; i++)
+            decimal score = 0;
+            int attempts = 0;
+            for (int i = 0; i < answers.Length; i++)
             {
-                if (Answers[i] && RightAnswers.Contains(i))
+                if (answers[i])
                 {
-                    score++;
+                    attempts++;
+                    if (correctAnswers.Contains(i))
+                    {
+                        score++;
+                    }
                 }
             }
-
-            score *= MaxScore / RightAnswers.Count();
+            int correctAnswersCount = correctAnswers.Length;
+            score -= attempts - correctAnswersCount;
+            score *= maxScore / correctAnswersCount;
             if (score < 0)
             {
                 score = 0;
@@ -200,14 +216,7 @@ namespace Vitalis.Core.Services
         {
             var testResult = await context.TestResults.Include(r => r.Test)
                                         .FirstOrDefaultAsync(r => r.TestTakerId == userId && r.TestId == testId);
-            var openQuestionAnswers = await context.OpenQuestionAnswers
-                                                   .Include(q => q.Question)
-                                                   .Where(q => q.UserId == userId
-                                                               && q.Question.TestId == testId
-                                                               && string.IsNullOrEmpty(q.Explanation))
-                                                   .ToListAsync();
             //TODO
-            //important
             //if (testResultsProcessor is not null)
             //{
             //    testResultsProcessor.setOpenQuesitons(openQuestionAnswers);
@@ -253,11 +262,9 @@ namespace Vitalis.Core.Services
                                                                    .Select(int.Parse)
                                                                    .ToArray(),
                         MaxScore = q.Question.MaxScore,
-                        ImagePath = q.Question.ImagePath
+                        ImagePath = q.Question.ImagePath,
+                        Score = (float)q.Points
                     };
-                    closedQuestionModel.Score = CalculateClosedQuestionScore(closedQuestionModel.AnswerIndexes,
-                        closedQuestionModel.CorrectAnswers,
-                        closedQuestionModel.MaxScore);
                     closedQuestions.Add(closedQuestionModel);
                 }
 
@@ -267,7 +274,7 @@ namespace Vitalis.Core.Services
                     ClosedQuestions = closedQuestions,
                     Score = closedQuestions.Sum(q => q.Score)
                                    + openQuestionsViewModels.Sum(q => q.Score),
-                    QuestionOrder = testResult.Test.QuestionsOrder
+                    QuestionsOrder = testResult.Test.QuestionsOrder
                                                      .Split(Constants.SeparationCharacter)
                                                      .Select(q => q == "O" ? QuestionType.Open : QuestionType.Closed)
                                                      .ToList()

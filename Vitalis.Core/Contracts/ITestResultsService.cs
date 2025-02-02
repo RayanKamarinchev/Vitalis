@@ -9,8 +9,6 @@ namespace Vitalis.Core.Contracts
         Task SaveStudentTestAnswer(List<OpenQuestionSubmitViewModel> openQuestions,
             List<ClosedQuestionViewModel> closedQuestions, Guid testId, string userId);
 
-        float CalculateClosedQuestionScore(bool[] Answers, int[] RightAnswers, float MaxScore);
-
         string[] GetTestTakersIds(Guid testId);
 
         Task<TestStatsViewModel> GetStatistics(Guid testId);

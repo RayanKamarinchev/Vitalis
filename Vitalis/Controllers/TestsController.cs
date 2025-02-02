@@ -193,8 +193,8 @@ namespace Vitalis.Controllers
         }
 
         [HttpGet]
-        [Route("review/{testId}/{studentId}")]
-        public async Task<IActionResult> ReviewAnswers(Guid testId, string studentId)
+        [Route("review/{testId}/{userId}")]
+        public async Task<IActionResult> ReviewAnswers(Guid testId, string userId)
         {
             if (!await testService.TestExistsById(testId))
             {

@@ -8,7 +8,7 @@ namespace Vitalis.Core.Models.Tests
     {
         public List<ClosedQuestionReviewViewModel> ClosedQuestions { get; set; }
         public List<OpenQuestionReviewViewModel> OpenQuestions { get; set; }
-        public List<QuestionType> QuestionOrder { get; set; }
+        public List<QuestionType> QuestionsOrder { get; set; }
         public float Score { get; set; }
     }
 }

@@ -35,14 +35,14 @@ namespace Vitalis.Core.Services
             IsCreator = t.CreatorId == userId,
             IsTestTaken = t.TestResults.Any(tr => tr.TestTakerId == userId),
             QuestionsCount = t.ClosedQuestions.Count + t.OpenQuestions.Count,
+            Groups = t.Groups.Select(x => x.OrganicGroup.Name).ToList(),
+            TestTakers = t.TestResults.Count(),
         };
 
         private Func<Test, RawTestViewModel> ToRawViewModel = t => new RawTestViewModel()
         {
-            OpenQuestions =
-                                                                                     t.OpenQuestions.ToList(),
-            ClosedQuestions =
-                                                                                     t.ClosedQuestions.ToList(),
+            OpenQuestions = t.OpenQuestions.ToList(),
+            ClosedQuestions = t.ClosedQuestions.ToList(),
             Id = t.Id,
             QuestionsOrder = t.QuestionsOrder,
             TestTitle = t.Title
@@ -99,6 +99,8 @@ namespace Vitalis.Core.Services
                                 .Include(t => t.ClosedQuestions)
                                 .Include(t => t.OpenQuestions)
                                 .Include(g => g.TestResults)
+                                .Include(t => t.Groups)
+                                .ThenInclude(g => g.OrganicGroup)
                                 .Select(x => ToViewModel(x, userId));
             var tests = await dbTests.ToListAsync();
             query.Items = tests;
@@ -327,7 +329,7 @@ namespace Vitalis.Core.Services
                 CreatorId = userId,
                 IsPublic = model.IsPublic,
                 QuestionsOrder = "",
-                Groups = groups.Select(x=> new TestOrganicGroup()
+                Groups = groups.Select(x => new TestOrganicGroup()
                 {
                     OrganicGroup = x
                 }).ToList()
