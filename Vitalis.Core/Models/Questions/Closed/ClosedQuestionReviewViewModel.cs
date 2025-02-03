@@ -2,7 +2,7 @@
 {
     public class ClosedQuestionReviewViewModel : ClosedQuestionViewModel
     {
-        public int[] CorrectAnswers { get; set; }
+        public bool[] CorrectAnswersArray { get; set; }
         public float Score { get; set; }
     }
 }

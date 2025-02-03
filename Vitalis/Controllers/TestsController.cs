@@ -127,7 +127,7 @@ namespace Vitalis.Controllers
                 return true;
             }
 
-            return closedQuestions.All(c => c.AnswerIndexes.Any(ai => ai));
+            return closedQuestions.All(c => c.UsersAnswersArray.Any(ai => ai));
         }
 
         [HttpPost("create")]

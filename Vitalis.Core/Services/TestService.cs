@@ -172,14 +172,13 @@ namespace Vitalis.Core.Services
                                       .Where(q => !q.IsDeleted)
                                       .Select(q => new ClosedQuestionViewModel()
                                       {
-                                          Options = q.Answers.Split(Constants.SeparationCharacter),
+                                          Options = q.Answers.Select(x=>x.Text).ToArray(),
                                           IsDeleted = false,
                                           Text = q.Text,
                                           Id = q.Id,
                                           MaxScore = q.MaxScore,
                                           ImagePath = q.ImagePath,
-                                          AnswerIndexes =
-                                              new bool[q.Answers.Count(x => x == Constants.SeparationCharacter) + 1]
+                                          UsersAnswersArray = new bool[q.Answers.Count()]
                                       })
                                       .ToList(),
                 QuestionsOrder = ProcessQuestionOrder(test.QuestionsOrder),
@@ -217,16 +216,12 @@ namespace Vitalis.Core.Services
                                                    .Select(q => new ClosedQuestion()
                                                    {
                                                        Text = q.Text,
-                                                       AnswerIndexes = string.Join(Constants.SeparationCharacter,
-                                                           q.AnswerIndexes
-                                                            .Select((val, indx) =>
-                                                                new { val, indx })
-                                                            .Where(q => q.val)
-                                                            .Select(q => q.indx)),
-                                                       Answers = string.Join(
-                                                           Constants.SeparationCharacter,
-                                                           q.Options.Where(a =>
-                                                               !string.IsNullOrEmpty(a))),
+                                                       Answers = q.Options.Where(a => !string.IsNullOrEmpty(a))
+                                                                  .Select((x, i)=>new Answer()
+                                                                  {
+                                                                      IsCorrect = q.UsersAnswersArray[i],
+                                                                      Text = q.Text
+                                                                  }),
                                                        MaxScore = q.MaxScore,
                                                        ImagePath = q.ImagePath
                                                    }))
@@ -264,7 +259,7 @@ namespace Vitalis.Core.Services
             (allQuestions, question) =>
             {
                 var modelQuestion = allQuestions
-                    .FirstOrDefault(q => CheckForSameAnswers(q, question.Answers) || q.Text == question.Text);
+                    .FirstOrDefault(q => CheckForSameAnswers(q.Options, question.Answers.Select(x=>x.Text)) || q.Text == question.Text);
                 if (modelQuestion is null)
                 {
                     return new ClosedQuestion();
@@ -273,23 +268,20 @@ namespace Vitalis.Core.Services
                 allQuestions.Remove(modelQuestion);
 
                 question.Text = modelQuestion.Text;
-                question.Answers = string.Join(
-                    Constants.SeparationCharacter, modelQuestion.Options.Where(a => !string.IsNullOrEmpty(a)));
-
-                question.AnswerIndexes = string.Join(Constants.SeparationCharacter, modelQuestion.AnswerIndexes
-                                                                       .Select((val, indx) =>
-                                                                           new { val, indx })
-                                                                       .Where(q => q.val)
-                                                                       .Select(q => q.indx));
+                question.Answers = modelQuestion.Options.Where(a => !string.IsNullOrEmpty(a))
+                                                .Select((x, i)=> new Answer()
+                                                {
+                                                    Text = x,
+                                                    IsCorrect = modelQuestion.UsersAnswersArray[i]
+                                                });
                 question.MaxScore = modelQuestion.MaxScore;
                 question.ImagePath = modelQuestion.ImagePath;
                 return question;
             };
 
-        private static bool CheckForSameAnswers(ClosedQuestionViewModel questionViewModel, string savedQuestionAnswers)
+        private static bool CheckForSameAnswers(IEnumerable<string> questionViewModelAnswers, IEnumerable<string> savedQuestionAnswers)
         {
-            return string.Join("&", questionViewModel.Options.Where(a => !string.IsNullOrEmpty(a))) ==
-                   savedQuestionAnswers;
+            return questionViewModelAnswers.Where(a => !string.IsNullOrEmpty(a)).SequenceEqual(savedQuestionAnswers);
         }
 
         public async Task SaveChanges()
@@ -413,10 +405,8 @@ namespace Vitalis.Core.Services
                                                .Where(q => !q.IsDeleted)
                                                .Select(q => new ClosedQuestionViewModel()
                                                {
-                                                   Options = q.Answers.Split(Constants.SeparationCharacter),
-                                                   AnswerIndexes =
-                                                                    ProcessAnswerIndexes(q.Answers.Split(Constants.SeparationCharacter),
-                                                                        q.AnswerIndexes),
+                                                   Options = q.Answers.Select(x=>x.Text).ToArray(),
+                                                   UsersAnswersArray = q.Answers.Select(x=>x.IsCorrect).ToArray(),
                                                    IsDeleted = false,
                                                    Text = q.Text,
                                                    MaxScore = q.MaxScore,
@@ -431,26 +421,6 @@ namespace Vitalis.Core.Services
                 IsPublic = test.IsPublic
             };
             return t;
-        }
-
-        private bool[] ProcessAnswerIndexes(string[] answers, string answerIndexes)
-        {
-            var list = Enumerable.Repeat(false, answers.Length).ToArray();
-            if (answerIndexes == "")
-            {
-                return list;
-            }
-
-            var listOfIndx = answerIndexes.Split(Constants.SeparationCharacter).Select(int.Parse);
-            for (int i = 0; i < list.Length; i++)
-            {
-                if (listOfIndx.Contains(i))
-                {
-                    list[i] = true;
-                }
-            }
-
-            return list;
         }
 
         //public async Task<QueryModel<TestViewModel>> GetAllAdmin(QueryModel<TestViewModel> query)

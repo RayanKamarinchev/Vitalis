@@ -14,6 +14,7 @@
     <PackageReference Include="NCDK" Version="1.6.1" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="OpenAI" Version="2.1.0" />
+    <PackageReference Include="PubChem.NET" Version="0.1.3" />
   </ItemGroup>
 
   <ItemGroup>

@@ -9,7 +9,7 @@ using Vitalis.Core.Models.Chemistry;
 using Newtonsoft.Json;
 using OpenAI.Chat;
 using Vitalis.Core.Models;
-using static System.Net.Mime.MediaTypeNames;
+using PubChem.NET;
 
 namespace Vitalis.Core.Services
 {

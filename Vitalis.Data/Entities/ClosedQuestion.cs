@@ -10,10 +10,7 @@ namespace Vitalis.Data.Entities
         [Required]
         public string Text { get; set; }
         [Required]
-        public string AnswerIndexes { get; set; }
-        [Required]
-        public string Answers { get; set; }
-
+        public IEnumerable<Answer> Answers { get; set; }
         public bool IsDeleted { get; set; }
         [Required]
         public Guid TestId { get; set; }
