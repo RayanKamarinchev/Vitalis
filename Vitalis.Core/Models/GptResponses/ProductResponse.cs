@@ -1,6 +1,6 @@
-﻿namespace Vitalis.Core.Models
+﻿namespace Vitalis.Core.Models.GptResponses
 {
-    public class Response
+    public class ProductResponse
     {
         public string Reactant1 { get; set; }
         public string Reactant2 { get; set; }

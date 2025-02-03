@@ -3,19 +3,24 @@ using NCDK.SMARTS;
 using NCDK.Smiles;
 using NCDK;
 using System.Text.RegularExpressions;
+using Microsoft.EntityFrameworkCore;
 using NCDK.IO.Formats;
 using Vitalis.Core.Contracts;
 using Vitalis.Core.Models.Chemistry;
 using Newtonsoft.Json;
 using OpenAI.Chat;
-using Vitalis.Core.Models;
 using PubChem.NET;
+using Vitalis.Core.Models.GptResponses;
+using Vitalis.Data;
+using Vitalis.Data.Entities;
 
 namespace Vitalis.Core.Services
 {
     public class MoleculeService : IMoleculeService
     {
         private readonly IConfiguration config;
+        private readonly VitalisDbContext context;
+
         private readonly SmilesParser smilesParser = new SmilesParser();
         private readonly SmartsPattern benzenePattern = SmartsPattern.Create("c1ccccc1");
         private readonly SmartsPattern acidPropertiesAlkynePattern = SmartsPattern.Create("[C;H1]#[C;H0]");
@@ -36,9 +41,10 @@ namespace Vitalis.Core.Services
         private readonly SmartsPattern carboxylicAcidPattern = SmartsPattern.Create("[CX3](=O)[OX2H]");
         private readonly SmartsPattern hexagonPattern = SmartsPattern.Create("C1CCCCC1");
 
-        public MoleculeService(IConfiguration _config)
+        public MoleculeService(IConfiguration _config, VitalisDbContext _context)
         {
             config = _config;
+            context = _context;
         }
 
         public List<Reaction> GetPossibleReactions(string reactant)
@@ -278,10 +284,59 @@ namespace Vitalis.Core.Services
             ChatCompletion completion = await client.CompleteChatAsync(messages, options);
             string response = completion.Content[0].Text;
             //convert response to json
-            Response json = JsonConvert.DeserializeObject<Response>(response);
+            ProductResponse json = JsonConvert.DeserializeObject<ProductResponse>(response);
             string res = json.ProductInSMILES.Replace(" ", String.Empty);
 
             return res;
+        }
+
+        public async Task<CompoundInfo> GetInfo(string name)
+        {
+            var compound = await context.Compounds.FirstOrDefaultAsync(x => x.Name == name);
+            if (compound is not null)
+            {
+                return new CompoundInfo()
+                {
+                    PhysicalAppearance = compound.PhysicalAppearance,
+                    Applications = compound.Applications
+                };
+            }
+            string prompt = $"What is the physical appearance and the applications of " + name;
+            ChatClient client = new(model: "gpt-4o-mini", apiKey: config["openAiApiKey"]);
+            ChatCompletionOptions options = new()
+            {
+                ResponseFormat = ChatResponseFormat.CreateJsonSchemaFormat(
+                    jsonSchemaFormatName: "product",
+                    jsonSchema: BinaryData.FromBytes("""
+                                                     {
+                                                         "type": "object",
+                                                         "properties": {
+                                                            "PhysicalAppearance": { "type": "string" },
+                                                            "applications": { "type": "string" }
+                                                         },
+                                                         "required": ["PhysicalAppearance", "applications"],
+                                                         "additionalProperties": false
+                                                     }
+                                                     """u8.ToArray()),
+                    jsonSchemaIsStrict: true)
+            };
+            List<ChatMessage> messages =
+            [
+                new UserChatMessage(prompt),
+            ];
+            ChatCompletion completion = await client.CompleteChatAsync(messages, options);
+            string response = completion.Content[0].Text;
+            CompoundInfo json = JsonConvert.DeserializeObject<CompoundInfo>(response);
+
+            await context.Compounds.AddAsync(new Compound()
+            {
+                Name = name,
+                PhysicalAppearance = json.PhysicalAppearance,
+                Applications = json.Applications
+            });
+            await context.SaveChangesAsync();
+
+            return json;
         }
     }
 }

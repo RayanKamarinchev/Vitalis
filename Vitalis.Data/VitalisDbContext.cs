@@ -39,5 +39,7 @@ namespace Vitalis.Data
         public DbSet<TestResult> TestResults { get; set; }
         public DbSet<TestOrganicGroup> TestOrganicGroups { get; set; }
         public DbSet<OrganicGroup> OrganicGroups { get; set; }
+        public DbSet<Answer> Answers { get; set; }
+        public DbSet<Compound> Compounds { get; set; }
     }
 }

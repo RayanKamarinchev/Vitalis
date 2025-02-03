@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using Vitalis.Core.Contracts;
 using Vitalis.Core.Models.Chemistry;
+using Vitalis.Core.Models.GptResponses;
 
 namespace Vitalis.Controllers
 {
@@ -31,10 +32,12 @@ namespace Vitalis.Controllers
             return Ok(product);
             //return "CC(Cl)C";
         }
-    }
 
-    public class SingleValueJson
-    {
-        public string Reactant { get; set; }
+        [HttpGet("info/{name}")]
+        public async Task<IActionResult> Info(string name)
+        {
+            CompoundInfo info = await moleculeService.GetInfo(name);
+            return Ok(info);
+        }
     }
 }
