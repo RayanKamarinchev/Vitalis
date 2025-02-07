@@ -13,6 +13,7 @@ using PubChem.NET;
 using Vitalis.Core.Models.GptResponses;
 using Vitalis.Data;
 using Vitalis.Data.Entities;
+using static Vitalis.Core.Infrastructure.Constants;
 
 namespace Vitalis.Core.Services
 {
@@ -20,26 +21,6 @@ namespace Vitalis.Core.Services
     {
         private readonly IConfiguration config;
         private readonly VitalisDbContext context;
-
-        private readonly SmilesParser smilesParser = new SmilesParser();
-        private readonly SmartsPattern benzenePattern = SmartsPattern.Create("c1ccccc1");
-        private readonly SmartsPattern acidPropertiesAlkynePattern = SmartsPattern.Create("[C;H1]#[C;H0]");
-        private readonly SmartsPattern soldiumAlkynePattern = SmartsPattern.Create("[C;Na1]#[C;H0]");
-        private readonly SmartsPattern geminalHalogensPattern = SmartsPattern.Create("[CX4]([F,Cl,Br,I])[F,Cl,Br,I]");
-        private readonly SmartsPattern alcoholsPattern = SmartsPattern.Create("[CX4][OH]");
-        private readonly SmartsPattern alkenesPattern = SmartsPattern.Create("[C]=[C]");
-        private readonly SmartsPattern alkynesPattern = SmartsPattern.Create("[C]#[C]");
-        private readonly SmartsPattern halogensPattern = SmartsPattern.Create("[C][Cl,Br]");
-        private readonly SmartsPattern carbonylPattern = SmartsPattern.Create("[C]=[O]");
-        private readonly SmartsPattern aminesPattern = SmartsPattern.Create("[NX3;!$(N=*)]");
-        private readonly SmartsPattern soldiumAlkoxidePattern = SmartsPattern.Create("[Na+].[O-][C]");
-        private readonly SmartsPattern nitrilesPattern = SmartsPattern.Create("[C]#N");
-        private readonly SmartsPattern amidesPattern = SmartsPattern.Create("[CX3](=[O])[NX3]");
-        private readonly SmartsPattern nitroarenesPattern = SmartsPattern.Create("[a][N+](=O)[O-]");
-        private readonly SmartsPattern aminoarenesPattern = SmartsPattern.Create("[a][NH2]");
-        private readonly SmartsPattern diazoniumPattern = SmartsPattern.Create("[a][N+]#N");
-        private readonly SmartsPattern carboxylicAcidPattern = SmartsPattern.Create("[CX3](=O)[OX2H]");
-        private readonly SmartsPattern hexagonPattern = SmartsPattern.Create("C1CCCCC1");
 
         public MoleculeService(IConfiguration _config, VitalisDbContext _context)
         {
@@ -52,24 +33,20 @@ namespace Vitalis.Core.Services
             //cycloalkanes 2 halogens
             //dehalogenation
             //benxene preparation
-            var mol = smilesParser.ParseSmiles(reactant);
+            var mol = ChemConstants.smilesParser.ParseSmiles(reactant);
 
             List<Reaction> reactions = new List<Reaction>();
             AddReaction("Cl2", "", "hv");
-            AddReaction("Br\u2082", "", "hv");
+            AddReaction("Br2", "", "hv");
             AddReaction("HNO3", "", "t");
-            AddReaction("H2SO4", "", "t");
 
-            //dehydration
-            AddReaction("", "", "t");
-
-            if (hexagonPattern.Matches(mol))
+            if (ChemConstants.hexagonPattern.Matches(mol))
             {
                 AddReaction("", "", "t, cat");
             }
 
 
-            if (halogensPattern.Matches(mol))
+            if (ChemConstants.halogensPattern.Matches(mol))
             {
                 AddReaction("KOH", "", "alcohol");
                 AddReaction("KOH", "", "aqua");
@@ -82,31 +59,36 @@ namespace Vitalis.Core.Services
             }
 
             //alkene alkine
-            if (alkenesPattern.Matches(mol) || alkynesPattern.Matches(mol))
+            if (ChemConstants.alkenesPattern.Matches(mol) || ChemConstants.alkynesPattern.Matches(mol))
             {
+                
+                //dehydrogenation
+                AddReaction("", "", "t");
                 AddReaction("HCl", "", "");
                 AddReaction("HBr", "", "");
                 AddReaction("H2", "Ni", "t, p");
                 AddReaction("HCN", "", "");
                 AddReaction("H2O", "H+", "t, p");
-                AddReaction("H2O + KMnO4", "", "");
+                AddReaction("H2O + KMnO4", "", "");//TODO
                 AddReaction("KMnO4", "", "OH-, t", "H2SO4");
                 AddReaction("O2", "", "300 C", "Ag");
                 AddReaction("O2", "PdCl2 . CuCl2", "t");
 
             }
 
-            if (alkynesPattern.Matches(mol))
+            if (ChemConstants.alkynesPattern.Matches(mol))
             {
-                AddReaction("", "cat. Lindlar", "aqua");
-                if (acidPropertiesAlkynePattern.Matches(mol))
+                //dehydrogenation
+                AddReaction("", "", "t");
+                AddReaction("H2", "cat. Lindlar", "aqua");
+                if (ChemConstants.acidPropertiesAlkynePattern.Matches(mol))
                 {
                     AddReaction("NaNH2", "", "");
                 }
             }
 
             //alchohol
-            if (alcoholsPattern.Matches(mol))
+            if (ChemConstants.alcoholsPattern.Matches(mol))
             {
                 //dehydration
                 AddReaction("", "H2SO4", "t = 180C");
@@ -138,7 +120,7 @@ namespace Vitalis.Core.Services
             }
 
             //carbonyl derrivatives
-            if (carbonylPattern.Matches(mol))
+            if (ChemConstants.carbonylPattern.Matches(mol))
             {
                 AddReaction("LiAlH4", "", "");
                 AddReaction("H2O", "", "");
@@ -154,7 +136,7 @@ namespace Vitalis.Core.Services
                 AddReaction("NaOH", "", "");
             }
 
-            if (carboxylicAcidPattern.Matches(mol))
+            if (ChemConstants.carboxylicAcidPattern.Matches(mol))
             {
                 AddReaction("Na", "", "t");
                 AddReaction("NaOH", "", "t");
@@ -171,7 +153,7 @@ namespace Vitalis.Core.Services
             }
 
             //has benzene nucleus
-            if (benzenePattern.Matches(mol))
+            if (ChemConstants.benzenePattern.Matches(mol))
             {
                 AddReaction("CH3COCl", "AlCl3 (lewis acid)", "");
                 AddReaction("H2", "", "t, p");
@@ -186,7 +168,7 @@ namespace Vitalis.Core.Services
                 
             //}
 
-            if (diazoniumPattern.Matches(mol))
+            if (ChemConstants.diazoniumPattern.Matches(mol))
             {
                 AddReaction("CuCN", "", "t");
                 AddReaction("H3PO2 + H2O", "", "t");
@@ -194,41 +176,41 @@ namespace Vitalis.Core.Services
                 AddReaction("CuBr", "", "t");
             }
 
-            if (nitrilesPattern.Matches(mol))
+            if (ChemConstants.nitrilesPattern.Matches(mol))
             {
                 AddReaction("LiAlH4", "", "");
                 AddReaction("H2O", "", "");
             }
 
-            if (amidesPattern.Matches(mol))
+            if (ChemConstants.amidesPattern.Matches(mol))
             {
                 AddReaction("LiAlH4", "", "");
             }
 
-            if (nitroarenesPattern.Matches(mol))
+            if (ChemConstants.nitroarenesPattern.Matches(mol))
             {
                 AddReaction("H2", "Ni", "t, p");
             }
 
-            if (aminoarenesPattern.Matches(mol))
+            if (ChemConstants.aminoarenesPattern.Matches(mol))
             {
                 //диазониеви соли
                 //TODO might fail
                 AddReaction("NaNO2 + HCl", "", "t = 0C");
             }
 
-            if (geminalHalogensPattern.Matches(mol))
+            if (ChemConstants.geminalHalogensPattern.Matches(mol))
             {
                 AddReaction("NaNH2", "strong base", "t");
                 AddReaction("H2O", "", "");
             }
 
-            if (soldiumAlkynePattern.Matches(mol))
+            if (ChemConstants.soldiumAlkynePattern.Matches(mol))
             {
                 AddReaction("ClCH2R", "", "");
             }
 
-            if (soldiumAlkoxidePattern.Matches(mol))
+            if (ChemConstants.soldiumAlkoxidePattern.Matches(mol))
             {
                 AddReaction("ClCH2CH3", "", "");
                 AddReaction("BrCH2CH3", "", "");
@@ -242,52 +224,9 @@ namespace Vitalis.Core.Services
             }
         }
 
-
-
-        public async Task<string> PredictProduct(string reactant, string reagent, string catalyst, string conditions, string followUp)
+        public async Task<string> PredictProduct(string reactant, Reaction reaction)
         {
-            string reactionPrompt = $"{reactant} + {reagent}, catalyst: {catalyst}, under conditions: {conditions}";
-            if (followUp != "")
-            {
-                reactionPrompt += $", next step: {followUp}";
-            }
-
-            ChatClient client = new(model: "gpt-4o", apiKey: config["openAiApiKey"]);
-
-            string prompt = "output json with the structure formula and the valid SMILES formula of the main product of the reaction:\n" + reactionPrompt;
-            ChatCompletionOptions options = new()
-            {
-                ResponseFormat = ChatResponseFormat.CreateJsonSchemaFormat(
-                    jsonSchemaFormatName: "product",
-                    jsonSchema: BinaryData.FromBytes("""
-                                                     {
-                                                         "type": "object",
-                                                         "properties": {
-                                                            "reactant1": { "type": "string" },
-                                                            "reactant2": { "type": "string" },
-                                                            "explanation": { "type": "string" },
-                                                            "reactionEquation": { "type": "string" },
-                                                            "product": { "type": "string" },
-                                                            "productInSMILES": { "type": "string" }
-                                                         },
-                                                         "required": ["reactant1", "reactant2", "explanation", "reactionEquation", "product", "productInSMILES"],
-                                                         "additionalProperties": false
-                                                     }
-                                                     """u8.ToArray()),
-                    jsonSchemaIsStrict: true)
-            };
-
-            List<ChatMessage> messages =
-            [
-                new UserChatMessage(prompt),
-            ];
-            ChatCompletion completion = await client.CompleteChatAsync(messages, options);
-            string response = completion.Content[0].Text;
-            //convert response to json
-            ProductResponse json = JsonConvert.DeserializeObject<ProductResponse>(response);
-            string res = json.ProductInSMILES.Replace(" ", String.Empty);
-
-            return res;
+            
         }
 
         public async Task<CompoundInfo> GetInfo(string name)

@@ -4,6 +4,12 @@ namespace Vitalis.Core.Models.Chemistry
 {
     public class Reaction
     {
+        public string? Reagent { get; set; }
+        public string? ReagentVisualized { get; set; }
+        public string? Catalyst { get; set; }
+        public string? Conditions { get; set; }
+        public string? FollowUp { get; set; }
+
         public Reaction(string reagent, string catalyst, string conditions, string followUp)
         {
             Reagent = reagent;
@@ -34,11 +40,5 @@ namespace Vitalis.Core.Models.Chemistry
             { '8', '\u2088' },
             { '9', '\u2089' },
         };
-
-        public string? Reagent { get; set; }
-        public string? ReagentVisualized { get; set; }
-        public string? Catalyst { get; set; }
-        public string? Conditions { get; set; }
-        public string? FollowUp { get; set; }
     }
 }
