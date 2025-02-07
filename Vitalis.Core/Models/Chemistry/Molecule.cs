@@ -1,5 +1,4 @@
-﻿using System.Text;
-using MathNet.Numerics;
+﻿using MathNet.Numerics;
 using NCDK;
 
 namespace Vitalis.Core.Models.Chemistry
@@ -13,12 +12,23 @@ namespace Vitalis.Core.Models.Chemistry
             Atoms = atoms;
         }
 
+        public Molecule(Molecule mol)
+        {
+            Atoms = new List<Atom>(mol.Atoms);
+            Smiles = mol.Smiles;
+        }
+
         public void AddNewAtom(string atomElement, Atom bondedAtom, BondType type)
         {
             var (x, y) = GetCoords(bondedAtom);
             Atom newAtom = new Atom(x, y, atomElement);
             Atoms.Add(newAtom);
             bondedAtom.AddBond(newAtom, type);
+        }
+        public void ChangeBond(Atom atom1, Atom atom2, bool addBond)
+        {
+            atom1.Bonds.FirstOrDefault(x => x.Atom.Equals(atom2)).Type += addBond ? 1 : -1;
+            atom2.Bonds.FirstOrDefault(x => x.Atom.Equals(atom1)).Type += addBond ? 1 : -1;
         }
 
         private (double, double) GetCoords(Atom bondedAtom)
@@ -52,7 +62,7 @@ namespace Vitalis.Core.Models.Chemistry
             else
             {
                 newX = x + ChemConstants.bondLength * Math.Cos(30);
-                newY = y - ChemConstants.bondLength * Math.Sin(30) * (dx/Math.Abs(dx));
+                newY = y - ChemConstants.bondLength * Math.Sin(30) * (dx / Math.Abs(dx));
                 if (NoAtomsAtCoords(newX, newY, connectedAtoms))
                 {
                     return (newX, newY);
@@ -71,7 +81,7 @@ namespace Vitalis.Core.Models.Chemistry
         {
             foreach (var atom in atomsToCheck)
             {
-                if (atom.X.AlmostEqual(x,2) && atom.Y.AlmostEqual(y, 2))
+                if (atom.X.AlmostEqual(x, 2) && atom.Y.AlmostEqual(y, 2))
                 {
                     return false;
                 }

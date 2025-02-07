@@ -7,7 +7,7 @@
         public string Element { get; set; }
         public List<Bond> Bonds { get; set; }
 
-        public int Connections => Bonds.Count;
+        public int Connections => Bonds.Sum(x=>(int)x.Type);
 
         public Atom(double x, double y, string element)
         {

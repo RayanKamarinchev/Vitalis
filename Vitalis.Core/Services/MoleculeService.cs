@@ -54,32 +54,31 @@ namespace Vitalis.Core.Services
                 AddReaction("NH3", "", "");
                 AddReaction("NaCN", "", "");
 
+                //TODO
                 AddReaction("Li", "", "");
                 AddReaction("Mg", "", "");
             }
 
-            //alkene alkine
+            //alkene
             if (ChemConstants.alkenesPattern.Matches(mol) || ChemConstants.alkynesPattern.Matches(mol))
             {
-                
                 //dehydrogenation
-                AddReaction("", "", "t");
+                AddReaction("", "", "t");//TODO
+
                 AddReaction("HCl", "", "");
                 AddReaction("HBr", "", "");
                 AddReaction("H2", "Ni", "t, p");
                 AddReaction("HCN", "", "");
                 AddReaction("H2O", "H+", "t, p");
                 AddReaction("H2O + KMnO4", "", "");//TODO
-                AddReaction("KMnO4", "", "OH-, t", "H2SO4");
-                AddReaction("O2", "", "300 C", "Ag");
-                AddReaction("O2", "PdCl2 . CuCl2", "t");
+                AddReaction("KMnO4", "", "OH-, t", "H2SO4");//TODO
+                AddReaction("O2", "", "300 C", "Ag");//TODO
+                AddReaction("O2", "PdCl2 . CuCl2", "t");//TODO
 
             }
 
             if (ChemConstants.alkynesPattern.Matches(mol))
             {
-                //dehydrogenation
-                AddReaction("", "", "t");
                 AddReaction("H2", "cat. Lindlar", "aqua");
                 if (ChemConstants.acidPropertiesAlkynePattern.Matches(mol))
                 {
@@ -94,13 +93,12 @@ namespace Vitalis.Core.Services
                 AddReaction("", "H2SO4", "t = 180C");
                 AddReaction("", "Pt", "t");
 
-                AddReaction("Na", "", "t");
+                AddReaction("Na", "", "t");//TODO
 
                 AddReaction("HCl", "", "");
                 AddReaction("HBr", "", "");
                 AddReaction("NH3", "Al2O3", "t");
                 AddReaction("HCN", "", "");
-                AddReaction("CH3CH3", "", "");
 
                 AddReaction("PBr3", "", "t < 0C");
                 AddReaction("PCl3", "", "t < 0C");
@@ -109,14 +107,14 @@ namespace Vitalis.Core.Services
                 AddReaction("SOCl2", "", "");
 
                 //eterification
-                AddReaction("CH3CH2OH", "H2SO4", "t = 140C");
+                AddReaction("CH3CH2OH", "H2SO4", "t = 140C");//TODO
+                //esterification
+                AddReaction("CH3COOH", "H+", "t");//TODO
 
-                AddReaction("CH3COOH", "H+", "t");
-
-                AddReaction("KMnO4", "K2Cr2O7", "");
+                AddReaction("KMnO4", "K2Cr2O7", "");//TODO
 
                 //Iodoform
-                AddReaction("NaOH + I2", "", "");
+                AddReaction("NaOH + I2", "", "");//TODO
             }
 
             //carbonyl derrivatives
@@ -124,10 +122,7 @@ namespace Vitalis.Core.Services
             {
                 AddReaction("LiAlH4", "", "");
                 AddReaction("H2O", "", "");
-                AddReaction("CH3CH2OH", "", "");
                 AddReaction("HCN", "", "");
-                //complex
-                AddReaction("NH2CH3", "", "");
 
                 AddReaction("NaHSO3", "", "");
                 AddReaction("KMnO4", "", "");
