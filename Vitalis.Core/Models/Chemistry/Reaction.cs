@@ -10,7 +10,7 @@ namespace Vitalis.Core.Models.Chemistry
         public string? Conditions { get; set; }
         public string? FollowUp { get; set; }
 
-        public Reaction(string reagent, string catalyst, string conditions, string followUp)
+        public Reaction(string reagent, string catalyst, string conditions, string followUp = "")
         {
             Reagent = reagent;
             Catalyst = catalyst;

@@ -1,24 +1,56 @@
-﻿using System.Collections.Generic;
-using System.Globalization;
+﻿using Vitalis.Core.Contracts;
 using Vitalis.Core.Models.Chemistry;
-using Molecule = Vitalis.Core.Models.Chemistry.Molecule;
 
-namespace Vitalis.Core.Domain
+namespace Vitalis.Core.Services
 {
-    public class ReactionPredictor
+    public class ProductPredictionService : IProductPredictionService
     {
-        private readonly List<string> hydrogenReagents = ["HCl", "HBr", "NH3", "HCN"];
-        private readonly List<string> bases = ["NaOH", "KOH"];
+        private readonly IMoleculeComputationService moleculeComputationService;
 
-        public List<Molecule> PredictProduct(string reactantInMol, Reaction reaction, string reactantSmiles)
+        public ProductPredictionService(IMoleculeComputationService _moleculeComputationService)
         {
-            Molecule molecule = new Molecule(ConvertToMolecule(
-                "\r\n  MJ240402                      \r\n\r\n  5  4  0  0  0  0  0  0  0  0999 V2000\r\n   -0.1450   -0.4687    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\r\n    0.5693   -0.0562    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\r\n    1.2838   -0.4687    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\r\n    1.9983   -0.0562    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\r\n    2.7127   -0.4687    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0\r\n  1  2  1  0  0  0  0\r\n  2  3  1  0  0  0  0\r\n  3  4  1  0  0  0  0\r\n  4  5  1  0  0  0  0\r\nM  END"));
+            moleculeComputationService = _moleculeComputationService;
+        }
+
+        public List<Reaction> GetPossibleReactions(string reactant)
+        {
+            var mol = ChemConstants.smilesParser.ParseSmiles(reactant);
+
+            List<Reaction> reactions = new List<Reaction>();
+            AddReaction("Cl2", "", "hv");
+            AddReaction("Br2", "", "hv");
+            AddReaction("HNO3", "", "t");
+
+            foreach (var reactionPattern in ChemConstants.reactionPatterns)
+            {
+                if (reactionPattern.SmartsPattern.Matches(mol))
+                {
+                    reactions.AddRange(reactionPattern.Reactions);
+                }
+            }
+
+            return reactions;
+
+            void AddReaction(string reagent, string catalyst, string conditions, string followUp = "")
+            {
+                reactions.Add(new Reaction(reagent, catalyst, conditions, followUp));
+            }
+        }
+
+        public string PredictProduct(string reactant, string smiles, Reaction reaction)
+        {
+            var predictions = PredictProducts(reactant, reaction, smiles);
+            return moleculeComputationService.ConvertMoleculeToFile(predictions[0]);
+        }
+
+        private List<Molecule> PredictProducts(string reactantInMol, Reaction reaction, string reactantSmiles)
+        {
+            Molecule molecule = new Molecule(moleculeComputationService.ConvertFileToMolecule(reactantInMol));
             molecule.Smiles = ChemConstants.smilesParser.ParseSmiles(reactantSmiles);
             List<Molecule> possibleProducts = new List<Molecule>();
 
             //halogens
-            if (hydrogenReagents.Contains(reaction.Reagent) || bases.Contains(reaction.Reagent)
+            if (ChemConstants.hydrogenReagents.Contains(reaction.Reagent) || ChemConstants.bases.Contains(reaction.Reagent)
                                                             || reaction.Reagent == "H2O")
             {
                 if (reaction.Conditions == "alcohol")
@@ -36,7 +68,7 @@ namespace Vitalis.Core.Domain
                 return EliminationWithBondCreation(molecule, ["O"]);
             }
 
-            if (hydrogenReagents.Contains(reaction.Reagent))
+            if (ChemConstants.hydrogenReagents.Contains(reaction.Reagent))
             {
                 possibleProducts.AddRange(Swap(molecule, ["O"]
                     , reaction.Reagent.Replace("H", "")));
@@ -98,6 +130,8 @@ namespace Vitalis.Core.Domain
                     }
                     break;
             }
+
+            return possibleProducts;
         }
 
         private List<Molecule> CarbonylAddition(Molecule mol, string elementToAdd)
@@ -243,39 +277,6 @@ namespace Vitalis.Core.Domain
             }
 
             return [mol];
-        }
-
-        private static List<Atom> ConvertToMolecule(string mol)
-        {
-            List<Atom> molecule = new List<Atom>();
-            int startIndex = 3;
-            var block = mol.Split(new char[] { '\n' });
-            string str1 = block[startIndex];
-            int atomsCount = int.Parse(str1.Substring(0, 3).Trim(), (IFormatProvider)NumberFormatInfo.InvariantInfo);
-            int bondsCount = int.Parse(str1.Substring(3, 3).Trim(), (IFormatProvider)NumberFormatInfo.InvariantInfo);
-
-            startIndex++;
-            int lastAtomIndex = atomsCount + startIndex;
-            for (int i = startIndex; i < lastAtomIndex; ++i)
-            {
-                var input = block[i].Split(' ', StringSplitOptions.RemoveEmptyEntries).ToArray();
-                molecule.Add(new Atom(double.Parse(input[0]), double.Parse(input[1]), input[3]));
-            }
-            if (atomsCount > 1)
-            {
-                int lastBondIndex = lastAtomIndex + bondsCount;
-                for (int index = lastAtomIndex; index < lastBondIndex; ++index)
-                {
-                    string str2 = block[index];
-                    var input = str2.Split(' ', StringSplitOptions.RemoveEmptyEntries).ToArray();
-                    int firstElement = int.Parse(input[0]);
-                    int secondElement = int.Parse(input[1]);
-                    BondType bondType = (BondType)int.Parse(input[2]);
-                    molecule[firstElement - 1].Bonds.Add(new Bond(molecule[secondElement - 1], bondType));
-                    molecule[secondElement - 1].Bonds.Add(new Bond(molecule[firstElement - 1], bondType));
-                }
-            }
-            return molecule;
         }
     }
 }

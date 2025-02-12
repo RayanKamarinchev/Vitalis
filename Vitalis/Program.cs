@@ -55,6 +55,8 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddControllers().AddNewtonsoftJson();
 
+builder.Services.AddScoped<IMoleculeComputationService, MoleculeComputationService>();
+builder.Services.AddScoped<IProductPredictionService, ProductPredictionService>();
 builder.Services.AddScoped<IMoleculeService, MoleculeService>();
 builder.Services.AddScoped<ITestService, TestService>();
 builder.Services.AddScoped<ITestResultsService, TestResultsService>();

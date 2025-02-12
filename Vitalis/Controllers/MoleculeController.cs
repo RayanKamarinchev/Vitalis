@@ -11,24 +11,26 @@ namespace Vitalis.Controllers
     public class MoleculeController : ControllerBase
     {
         private readonly IMoleculeService moleculeService;
+        private readonly IProductPredictionService productPredictionService;
 
-        public MoleculeController(IMoleculeService _moleculeService)
+        public MoleculeController(IMoleculeService _moleculeService, IProductPredictionService _productPredictionService)
         {
             moleculeService = _moleculeService;
+            productPredictionService = _productPredictionService;
         }
 
         [HttpGet("getReactions")]
         public IActionResult GetReactions(string reactant)
         {
-            var res = moleculeService.GetPossibleReactions(reactant);
+            var res = productPredictionService.GetPossibleReactions(reactant);
             return Ok(res);
         }
 
-        [HttpGet("predictProduct")]
-        public async Task<IActionResult> PredictProduct(string reactant, string reagent, string catalyst = "", string conditions = "",
-            string followUp = "")
+        [HttpPost("predictProduct")]
+        public IActionResult PredictProduct([FromBody] ProductReactionQueryModel model)
         {
-            string product = await moleculeService.PredictProduct(reactant, reagent, catalyst, conditions, followUp);
+            Reaction reaction = new Reaction(model.Reagent, model.Catalyst, model.Conditions, model.FollowUp);
+            string product = productPredictionService.PredictProduct(model.Reactant, model.Smiles, reaction);
             return Ok(product);
             //return "CC(Cl)C";
         }

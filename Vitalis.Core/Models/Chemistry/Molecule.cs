@@ -31,6 +31,7 @@ namespace Vitalis.Core.Models.Chemistry
             atom2.Bonds.FirstOrDefault(x => x.Atom.Equals(atom1)).Type += addBond ? 1 : -1;
         }
 
+        //TODO
         private (double, double) GetCoords(Atom bondedAtom)
         {
             double x = bondedAtom.X;
