@@ -149,10 +149,11 @@ namespace Vitalis.Core.Services
 
         private List<Molecule> CommonReaction(Molecule mol, Reaction reaction)
         {
-            if (ChemConstants.alkenesPattern.Matches(mol.Smiles) && ChemConstants.alkynesPattern.Matches(mol.Smiles)
+            if ((ChemConstants.alkenesPattern.Matches(mol.Smiles) || ChemConstants.alkynesPattern.Matches(mol.Smiles))
                                                                  && reaction.Reagent != "HNO3")
             {
                 ComplexBondReaction(mol, reaction);
+                return [mol];
             }
 
             Atom bondedAtom = mol.Atoms.Where(x => x.Connections != 4).MaxBy(x => x.Connections);
@@ -168,11 +169,13 @@ namespace Vitalis.Core.Services
 
         private List<Molecule> ComplexBondReaction(Molecule mol, Reaction reaction)
         {
-            foreach (var atom in mol.Atoms)
+            for (int i = 0; i < mol.Atoms.Count; i++)
             {
-                foreach (var bond in atom.Bonds)
+                var atom = mol.Atoms[i];
+                for (int j = 0; j < atom.Bonds.Count; j++)
                 {
-                    for (int i = 1; i < (int)bond.Type; i++)
+                    var bond = atom.Bonds[j];
+                    if ((int)bond.Type > 1)
                     {
                         if (reaction.Catalyst == "cat. Lindlar" && bond.Type != BondType.Triple)
                         {
@@ -190,9 +193,19 @@ namespace Vitalis.Core.Services
                             "HBr" => ("H", "Br"),
                             "HCN" => ("H", "CN"),
                             "H2O" => ("H", "O"),
+                            "H2" => ("H", "H")
                         };
-                        mol.AddNewAtom(atomsToAdd.Item1, hydrogenTakingAtom, BondType.Single);
-                        mol.AddNewAtom(atomsToAdd.Item2, otherAtom, BondType.Single);
+                        if (atomsToAdd.Item1 != "H")
+                        {
+                            mol.AddNewAtom(atomsToAdd.Item1, hydrogenTakingAtom, BondType.Single);
+                        }
+                        if (atomsToAdd.Item2 != "H")
+                        {
+                            mol.AddNewAtom(atomsToAdd.Item2, otherAtom, BondType.Single);
+                        }
+
+                        bond.Type--;
+                        bond.Atom.Bonds.FirstOrDefault(x => x.Atom.Equals(atom)).Type--;
                     }
                 }
             }

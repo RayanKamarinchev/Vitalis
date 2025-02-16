@@ -11,7 +11,7 @@ namespace Vitalis.Core.Models.Chemistry
         public static readonly SmartsPattern soldiumAlkynePattern = SmartsPattern.Create("[C;Na1]#[C;H0]");
         public static readonly SmartsPattern geminalHalogensPattern = SmartsPattern.Create("[CX4]([F,Cl,Br,I])[F,Cl,Br,I]");
         public static readonly SmartsPattern alcoholsPattern = SmartsPattern.Create("[CX4][OH]");
-        public static readonly SmartsPattern alkenesPattern = SmartsPattern.Create("[C]=[C]");
+        public static readonly SmartsPattern alkenesPattern = SmartsPattern.Create("[C]=[C] | [C]#[C]");
         public static readonly SmartsPattern alkynesPattern = SmartsPattern.Create("[C]#[C]");
         public static readonly SmartsPattern halogensPattern = SmartsPattern.Create("[C][Cl,Br]");
         public static readonly SmartsPattern carbonylPattern = SmartsPattern.Create("[C]=[O]");
@@ -48,9 +48,9 @@ namespace Vitalis.Core.Models.Chemistry
                     new("H2O", "", ""),
                     new("NH3", "", ""),
                     new("NaCN", "", ""),
-                    //TODO
-                    new("Li", "", ""),
-                    new("Mg", "", "")
+                    
+                    //new("Li", "", ""),
+                    //new("Mg", "", "")
                 }
             },
             new ReactionPattern()
@@ -60,17 +60,17 @@ namespace Vitalis.Core.Models.Chemistry
                 {
                     //TODO
                     //dehydrogenation
-                    new("", "", "t"),
+                    //new("", "", "t"),
 
                     new("HCl", "", ""),
                     new("HBr", "", ""),
                     new("H2", "Ni", "t, p"),
                     new("HCN", "", ""),
                     new("H2O", "H+", "t, p"),
-                    new("H2O + KMnO4", "", ""),//TODO
-                    new("KMnO4", "", "OH-, t", "H2SO4"),//TODO
-                    new("O2", "", "300 C", "Ag"),//TODO
-                    new("O2", "PdCl2 . CuCl2", "t")//TODO
+                    //new("H2O + KMnO4", "", ""),//TODO
+                    //new("KMnO4", "", "OH-, t", "H2SO4"),//TODO
+                    //new("O2", "", "300 C", "Ag"),//TODO
+                    //new("O2", "PdCl2 . CuCl2", "t")//TODO
                 }
             },
             new ReactionPattern()
@@ -96,7 +96,7 @@ namespace Vitalis.Core.Models.Chemistry
                 {
                     new("", "H2SO4", "t = 180C"),
                     new("", "Pt", "t"),
-                    new("Na", "", "t"),//TODO
+                    //new("Na", "", "t"),//TODO
                     new("HCl", "", ""),
                     new("HBr", "", ""),
                     new("NH3", "Al2O3", "t"),
@@ -106,10 +106,10 @@ namespace Vitalis.Core.Models.Chemistry
                     new("PCl5", "", "t < 0C"),
                     new("PBr5", "", "t < 0C"),
                     new("SOCl2", "", ""),
-                    new("CH3CH2OH", "H2SO4", "t = 140C"),//TODO
-                    new("CH3COOH", "H+", "t"),//TODO
-                    new("KMnO4", "K2Cr2O7", ""),//TODO
-                    new("NaOH + I2", "", "")//TODO
+                    //new("CH3CH2OH", "H2SO4", "t = 140C"),//TODO
+                    //new("CH3COOH", "H+", "t"),//TODO
+                    //new("KMnO4", "K2Cr2O7", ""),//TODO
+                    //new("NaOH + I2", "", "")//TODO
                 }
             },
             new ReactionPattern()
@@ -120,9 +120,9 @@ namespace Vitalis.Core.Models.Chemistry
                     new("LiAlH4", "", ""),
                     new("H2O", "", ""),
                     new("HCN", "", ""),
-                    new("NaHSO3", "", ""),
-                    new("KMnO4", "", ""),
-                    new("", "NaBH4", "", "H+")
+                    //new("NaHSO3", "", ""),
+                    //new("KMnO4", "", ""),
+                    //new("", "NaBH4", "", "H+")
                 }
             },
             new ReactionPattern()
@@ -133,12 +133,12 @@ namespace Vitalis.Core.Models.Chemistry
                     new("Na", "", "t"),
                     new("NaOH", "", "t"),
                     new("NH3", "", "t"),
-                    new("CH3CH2OH", "", "t"),
+                    //new("CH3CH2OH", "", "t"),
                     new("PCl3", "", "t"),
                     new("PCl5", "", "t"),
                     new("SOCl2", "", "t"),
                     new("LiAlH4", "", ""),
-                    new("", "", "t")
+                    //new("", "", "t")
                 }
             },
             new ReactionPattern()
@@ -146,12 +146,12 @@ namespace Vitalis.Core.Models.Chemistry
                 SmartsPattern = ChemConstants.benzenePattern,
                 Reactions = new List<Reaction>
                 {
-                    new("CH3COCl", "AlCl3 (lewis acid)", ""),
-                    new("H2", "", "t, p"),
-                    new("KMnO4", "", "OH-, t", "H2SO4"),
-                    new("HCl", "", ""),
-                    new("HBr", "", ""),
-                    new("HCN", "", "")
+                    //new("CH3COCl", "AlCl3 (lewis acid)", ""),
+                    //new("H2", "", "t, p"),
+                    //new("KMnO4", "", "OH-, t", "H2SO4"),
+                    //new("HCl", "", ""),
+                    //new("HBr", "", ""),
+                    //new("HCN", "", "")
                 }
             },
             new ReactionPattern()
@@ -159,10 +159,10 @@ namespace Vitalis.Core.Models.Chemistry
                 SmartsPattern = ChemConstants.diazoniumPattern,
                 Reactions = new List<Reaction>
                 {
-                    new("CuCN", "", "t"),
-                    new("H3PO2 + H2O", "", "t"),
-                    new("H2O", "", "t"),
-                    new("CuBr", "", "t")
+                    //new("CuCN", "", "t"),
+                    //new("H3PO2 + H2O", "", "t"),
+                    //new("H2O", "", "t"),
+                    //new("CuBr", "", "t")
                 }
             },
             new ReactionPattern()
@@ -170,46 +170,58 @@ namespace Vitalis.Core.Models.Chemistry
                 SmartsPattern = ChemConstants.nitrilesPattern,
                 Reactions = new List<Reaction>
                 {
-                    new("LiAlH4", "", ""),
-                    new("H2O", "", "")
+                    //new("LiAlH4", "", ""),
+                    //new("H2O", "", "")
                 }
             },
             new ReactionPattern()
             {
                 SmartsPattern = ChemConstants.amidesPattern,
-                Reactions = new List<Reaction> { new("LiAlH4", "", "") }
+                Reactions = new List<Reaction>
+                {
+                    //new("LiAlH4", "", "")
+                }
             },
             new ReactionPattern()
             {
                 SmartsPattern = ChemConstants.nitroarenesPattern,
-                Reactions = new List<Reaction> { new("H2", "Ni", "t, p") }
+                Reactions = new List<Reaction>
+                {
+                    //new("H2", "Ni", "t, p")
+                }
             },
             new ReactionPattern()
             {
                 SmartsPattern = ChemConstants.aminoarenesPattern,
-                Reactions = new List<Reaction> { new("NaNO2 + HCl", "", "t = 0C") }
+                Reactions = new List<Reaction>
+                {
+                    //new("NaNO2 + HCl", "", "t = 0C")
+                }
             },
             new ReactionPattern()
             {
                 SmartsPattern = ChemConstants.geminalHalogensPattern,
                 Reactions = new List<Reaction>
                 {
-                    new("NaNH2", "strong base", "t"),
-                    new("H2O", "", "")
+                    //new("NaNH2", "strong base", "t"),
+                    //new("H2O", "", "")
                 }
             },
             new ReactionPattern()
             {
                 SmartsPattern = ChemConstants.soldiumAlkynePattern,
-                Reactions = new List<Reaction> { new("ClCH2R", "", "") }
+                Reactions = new List<Reaction>
+                {
+                    //new("ClCH2R", "", "")
+                }
             },
             new ReactionPattern()
             {
                 SmartsPattern = ChemConstants.soldiumAlkoxidePattern,
                 Reactions = new List<Reaction>
                 {
-                    new("ClCH2CH3", "", ""),
-                    new("BrCH2CH3", "", "")
+                    //new("ClCH2CH3", "", ""),
+                    //new("BrCH2CH3", "", "")
                 }
             }
         };

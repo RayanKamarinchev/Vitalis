@@ -31,7 +31,6 @@ namespace Vitalis.Core.Models.Chemistry
             atom2.Bonds.FirstOrDefault(x => x.Atom.Equals(atom1)).Type += addBond ? 1 : -1;
         }
 
-        //TODO
         private (double, double) GetCoords(Atom bondedAtom)
         {
             double x = bondedAtom.X;
@@ -40,42 +39,66 @@ namespace Vitalis.Core.Models.Chemistry
             Atom orientationalAtom = connectedAtoms[0];
             double dx = orientationalAtom.X - x;
             double dy = orientationalAtom.Y - y;
-            double newX, newY;
-            if (dx != 0)
+
+            double previousAngle = Math.Atan2(dy, dx);
+            double firstAngle = Math.Abs(Math.Sin(previousAngle + Math.PI*2/3)) > Math.Abs(Math.Sin(previousAngle + Math.PI * 4 / 3))
+                ? previousAngle + Math.PI * 2 / 3
+                : previousAngle + Math.PI * 4 / 3;
+            double secondAngle = Math.Abs(Math.Sin(previousAngle + Math.PI * 2 / 3)) <= Math.Abs(Math.Sin(previousAngle + Math.PI * 4 / 3))
+                ? previousAngle + Math.PI * 2 / 3
+                : previousAngle + Math.PI * 4 / 3;
+            double[] angles = [firstAngle, secondAngle, previousAngle + Math.PI/3];
+            double newX = x;
+            double newY = y;
+
+            foreach (var angle in angles)
             {
-                newX = x - dx;
-                newY = y - dy;
-                if (NoAtomsAtCoords(newX, newY, connectedAtoms))
-                {
-                    return (newX, y + newY);
-                }
-
-                newX = x;
-                newY = y - ChemConstants.bondLength * (dy / Math.Abs(dy));
-                //if the slope of the last connected atom points down we need to check the reverse direction
+                newX = x + Math.Cos(angle) * ChemConstants.bondLength;
+                newY = y + Math.Sin(angle) * ChemConstants.bondLength;
                 if (NoAtomsAtCoords(newX, newY, connectedAtoms))
                 {
                     return (newX, newY);
                 }
-
-                return (x, y + ChemConstants.bondLength * (dy / Math.Abs(dy)));
             }
-            else
-            {
-                newX = x + ChemConstants.bondLength * Math.Cos(30);
-                newY = y - ChemConstants.bondLength * Math.Sin(30) * (dx / Math.Abs(dx));
-                if (NoAtomsAtCoords(newX, newY, connectedAtoms))
-                {
-                    return (newX, newY);
-                }
-                newX = x - ChemConstants.bondLength * Math.Cos(30);
-                if (NoAtomsAtCoords(newX, newY, connectedAtoms))
-                {
-                    return (newX, newY);
-                }
 
-                return (x, y - ChemConstants.bondLength);
-            }
+            return (newX, newY);
+
+            //double newX, newY;
+            //if (dx != 0)
+            //{
+            //    newX = x - dx;
+            //    newY = y - dy;
+            //    if (NoAtomsAtCoords(newX, newY, connectedAtoms))
+            //    {
+            //        return (newX, y + newY);
+            //    }
+
+            //    newX = x;
+            //    newY = y - ChemConstants.bondLength * (dy / Math.Abs(dy));
+            //    //if the slope of the last connected atom points down we need to check the reverse direction
+            //    if (NoAtomsAtCoords(newX, newY, connectedAtoms))
+            //    {
+            //        return (newX, newY);
+            //    }
+
+            //    return (x, y + ChemConstants.bondLength * (dy / Math.Abs(dy)));
+            //}
+            //else
+            //{
+            //    newX = x + ChemConstants.bondLength * Math.Cos(30);
+            //    newY = y - ChemConstants.bondLength * Math.Sin(30) * (dx / Math.Abs(dx));
+            //    if (NoAtomsAtCoords(newX, newY, connectedAtoms))
+            //    {
+            //        return (newX, newY);
+            //    }
+            //    newX = x - ChemConstants.bondLength * Math.Cos(30);
+            //    if (NoAtomsAtCoords(newX, newY, connectedAtoms))
+            //    {
+            //        return (newX, newY);
+            //    }
+
+            //    return (x, y - ChemConstants.bondLength);
+            //}
         }
 
         private bool NoAtomsAtCoords(double x, double y, Atom[] atomsToCheck)
