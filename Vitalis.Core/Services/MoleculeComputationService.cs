@@ -69,7 +69,7 @@ namespace Vitalis.Core.Services
                 {
                     if (bondMatrix[i, j] != 0)
                     {
-                        molFile.AppendLine($"  {i + 1}  {j + 1}  {bondMatrix[i, j]}  0  0  0  0 ");
+                        molFile.AppendLine($" {FitCount(i + 1, 2)} {FitCount(j + 1, 2)}  {bondMatrix[i, j]}  0  0  0  0 ");
                     }
                 }
             }

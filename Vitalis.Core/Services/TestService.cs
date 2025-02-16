@@ -149,6 +149,7 @@ namespace Vitalis.Core.Services
             var test = await context.Tests
                                     .Include(t => t.OpenQuestions)
                                     .Include(t => t.ClosedQuestions)
+                                    .ThenInclude(closedQuestion => closedQuestion.Answers)
                                     .FirstOrDefaultAsync(t => t.Id == testId);
             if (test is null || (!test.IsPublic && test.CreatorId != userId))
             {
@@ -178,7 +179,7 @@ namespace Vitalis.Core.Services
                                           Id = q.Id,
                                           MaxScore = q.MaxScore,
                                           ImagePath = q.ImagePath,
-                                          UsersAnswersArray = new bool[q.Answers.Count()]
+                                          AnswerIndexes = new bool[q.Answers.Count()]
                                       })
                                       .ToList(),
                 QuestionsOrder = ProcessQuestionOrder(test.QuestionsOrder),
@@ -198,33 +199,31 @@ namespace Vitalis.Core.Services
                 return Constants.NotFoundResponse;
             }
 
+            var newOpenQuestions = model.OpenQuestions
+                                    .Select(q => new OpenQuestion()
+                                    {
+                                        Text = q.Text,
+                                        Answer = q.Answer,
+                                        MaxScore = q.MaxScore,
+                                        ImagePath = q.ImagePath
+                                    });
+            var newClosedQuestions = model.ClosedQuestions
+                                          .Select(q => new ClosedQuestion()
+                                          {
+                                              Text = q.Text,
+                                              MaxScore = q.MaxScore,
+                                              ImagePath = q.ImagePath
+                                          });
+            //TODO answers
+
             test.OpenQuestions = test.OpenQuestions.Select(q => EditOpenQuestion(model.OpenQuestions, q))
                                      .Where(q => !string.IsNullOrEmpty(q.Text))
-                                     .Union(model.OpenQuestions
-                                                 .Select(q => new OpenQuestion()
-                                                 {
-                                                     Text = q.Text,
-                                                     Answer = q.Answer,
-                                                     MaxScore = q.MaxScore,
-                                                     ImagePath = q.ImagePath
-                                                 }))
+                                     .Union(newOpenQuestions)
                                      .ToList();
 
             test.ClosedQuestions = test.ClosedQuestions.Select(q => EditClosedQuestion(model.ClosedQuestions, q))
                                        .Where(q => !string.IsNullOrEmpty(q.Text))
-                                       .Union(model.ClosedQuestions
-                                                   .Select(q => new ClosedQuestion()
-                                                   {
-                                                       Text = q.Text,
-                                                       Answers = q.Options.Where(a => !string.IsNullOrEmpty(a))
-                                                                  .Select((x, i)=>new Answer()
-                                                                  {
-                                                                      IsCorrect = q.UsersAnswersArray[i],
-                                                                      Text = q.Text
-                                                                  }),
-                                                       MaxScore = q.MaxScore,
-                                                       ImagePath = q.ImagePath
-                                                   }))
+                                       .Union(newClosedQuestions)
                                        .ToList();
             test.QuestionsOrder = string.Join(Constants.SeparationCharacter, model.QuestionsOrder.Select(q => q.ToString()[0]));
 
@@ -272,7 +271,7 @@ namespace Vitalis.Core.Services
                                                 .Select((x, i)=> new Answer()
                                                 {
                                                     Text = x,
-                                                    IsCorrect = modelQuestion.UsersAnswersArray[i]
+                                                    IsCorrect = modelQuestion.AnswerIndexes[i]
                                                 });
                 question.MaxScore = modelQuestion.MaxScore;
                 question.ImagePath = modelQuestion.ImagePath;
@@ -376,6 +375,7 @@ namespace Vitalis.Core.Services
             var test = await context.Tests
                                     .Include(t => t.OpenQuestions)
                                     .Include(t => t.ClosedQuestions)
+                                    .ThenInclude(closedQuestion => closedQuestion.Answers)
                                     .Include(test => test.Groups)
                                     .FirstOrDefaultAsync(t => t.Id == testId);
             if (test is null || (!test.IsPublic && test.CreatorId == userId))
@@ -406,7 +406,7 @@ namespace Vitalis.Core.Services
                                                .Select(q => new ClosedQuestionViewModel()
                                                {
                                                    Options = q.Answers.Select(x=>x.Text).ToArray(),
-                                                   UsersAnswersArray = q.Answers.Select(x=>x.IsCorrect).ToArray(),
+                                                   AnswerIndexes = q.Answers.Select(x=>x.IsCorrect).ToArray(),
                                                    IsDeleted = false,
                                                    Text = q.Text,
                                                    MaxScore = q.MaxScore,

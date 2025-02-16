@@ -20,10 +20,24 @@ namespace Vitalis.Core.Models.Chemistry
 
         public void AddNewAtom(string atomElement, Atom bondedAtom, BondType type)
         {
-            var (x, y) = GetCoords(bondedAtom);
-            Atom newAtom = new Atom(x, y, atomElement);
-            Atoms.Add(newAtom);
-            bondedAtom.AddBond(newAtom, type);
+            if (atomElement == "CN")
+            {
+                var (x, y) = GetCoords(bondedAtom);
+                Atom newAtom = new Atom(x, y, "C");
+                Atoms.Add(newAtom);
+                bondedAtom.AddBond(newAtom, type);
+                var (x2, y2) = GetCoords(newAtom);
+                Atom secondNewAtom = new Atom(x2, y2, "N");
+                Atoms.Add(secondNewAtom);
+                newAtom.AddBond(secondNewAtom, BondType.Triple);
+            }
+            else
+            {
+                var (x, y) = GetCoords(bondedAtom);
+                Atom newAtom = new Atom(x, y, atomElement);
+                Atoms.Add(newAtom);
+                bondedAtom.AddBond(newAtom, type);
+            }
         }
         public void ChangeBond(Atom atom1, Atom atom2, bool addBond)
         {

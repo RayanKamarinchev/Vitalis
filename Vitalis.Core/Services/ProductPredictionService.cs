@@ -59,7 +59,7 @@ namespace Vitalis.Core.Services
                 }
 
                 possibleProducts.AddRange(Swap(molecule, ["Cl", "Br"]
-                    , reaction.Reagent.Replace("H", "")));
+                    , GetNonHydrogenPart(reaction.Reagent)));
             }
 
             //dehydration
@@ -71,7 +71,7 @@ namespace Vitalis.Core.Services
             if (ChemConstants.hydrogenReagents.Contains(reaction.Reagent))
             {
                 possibleProducts.AddRange(Swap(molecule, ["O"]
-                    , reaction.Reagent.Replace("H", "")));
+                    , GetNonHydrogenPart(reaction.Reagent)));
             }
 
             if (ChemConstants.carbonylPattern.Matches(molecule.Smiles))
@@ -83,8 +83,8 @@ namespace Vitalis.Core.Services
 
                 if (reaction.Reagent == "HCN")
                 {
-                    var res = BondElimination(molecule)[0];
-                    possibleProducts.AddRange(CarbonylAddition(res, "CN"));
+                    var res = CarbonylAddition(molecule, "CN")[0];
+                    possibleProducts.AddRange(BondElimination(res));
                 }
             }
 
@@ -105,6 +105,7 @@ namespace Vitalis.Core.Services
                 case "HCl":
                 case "HBr":
                 case "H2O":
+                case "HCN":
                     possibleProducts.AddRange(ComplexBondReaction(molecule, reaction));
                     break;
                 case "NaNH2":
@@ -134,10 +135,30 @@ namespace Vitalis.Core.Services
             return possibleProducts;
         }
 
+        private string GetNonHydrogenPart(string compound)
+        {
+            for (int i = 0; i < compound.Length; i++)
+            {
+                if (compound[i] == 'H')
+                {
+                    compound = compound.Remove(i, 1);
+                    if (i < compound.Length && char.IsDigit(compound[i]))
+                    {
+                        compound = compound.Remove(i, 1);
+                    }
+
+                    i--;
+                }
+            }
+
+            return compound;
+        }
+
         private List<Molecule> CarbonylAddition(Molecule mol, string elementToAdd)
         {
-            foreach (var atom in mol.Atoms)
+            for (int i = 0; i < mol.Atoms.Count; i++)
             {
+                var atom = mol.Atoms[i];
                 if (atom.Element == "O" && atom.Bonds[0].Type == BondType.Double)
                 {
                     mol.AddNewAtom(elementToAdd, atom.Bonds[0].Atom, BondType.Single);
@@ -172,9 +193,17 @@ namespace Vitalis.Core.Services
             for (int i = 0; i < mol.Atoms.Count; i++)
             {
                 var atom = mol.Atoms[i];
+                if (atom.Element != "C")
+                {
+                    continue;
+                }
                 for (int j = 0; j < atom.Bonds.Count; j++)
                 {
                     var bond = atom.Bonds[j];
+                    if (bond.Atom.Element != "C")
+                    {
+                        continue;
+                    }
                     if ((int)bond.Type > 1)
                     {
                         if (reaction.Catalyst == "cat. Lindlar" && bond.Type != BondType.Triple)
@@ -216,8 +245,9 @@ namespace Vitalis.Core.Services
         private List<Molecule> EliminationWithBondCreation(Molecule mol, string[] atomsToEliminate)
         {
             List<Molecule> possibleProducts = new List<Molecule>();
-            foreach (var atom in mol.Atoms)
+            for (int i = 0; i < mol.Atoms.Count; i++)
             {
+                var atom = mol.Atoms[i];
                 if (atomsToEliminate.Contains(atom.Element) && atom.Connections == 1)
                 {
                     var bondedAtom = atom.Bonds[0].Atom;
@@ -270,11 +300,20 @@ namespace Vitalis.Core.Services
 
         private List<Molecule> Swap(Molecule mol, string[] elementsToSwap, string newElement)
         {
-            foreach (var atom in mol.Atoms)
+            for (int i = 0; i < mol.Atoms.Count; i++)
             {
+                var atom = mol.Atoms[i];
                 if (elementsToSwap.Contains(atom.Element) && atom.Connections == 1)
                 {
-                    atom.Element = newElement;
+                    if (newElement == "CN")
+                    {
+                        atom.Element = "C";
+                        mol.AddNewAtom("N", atom, BondType.Triple);
+                    }
+                    else
+                    {
+                        atom.Element = newElement;
+                    }
                 }
             }
 

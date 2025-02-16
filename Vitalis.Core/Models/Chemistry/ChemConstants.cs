@@ -94,7 +94,7 @@ namespace Vitalis.Core.Models.Chemistry
                 SmartsPattern = ChemConstants.alcoholsPattern,
                 Reactions = new List<Reaction>
                 {
-                    new("", "H2SO4", "t = 180C"),
+                    new("", "H2SO4", "t"),
                     new("", "Pt", "t"),
                     //new("Na", "", "t"),//TODO
                     new("HCl", "", ""),
@@ -118,7 +118,6 @@ namespace Vitalis.Core.Models.Chemistry
                 Reactions = new List<Reaction>
                 {
                     new("LiAlH4", "", ""),
-                    new("H2O", "", ""),
                     new("HCN", "", ""),
                     //new("NaHSO3", "", ""),
                     //new("KMnO4", "", ""),

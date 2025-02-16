@@ -69,13 +69,13 @@ namespace Vitalis.Core.Services
                 var closedQuestion = test.ClosedQuestions.FirstOrDefault(x => x.Id == q.Id);
                 return new ClosedQuestionAnswer()
                 {
-                    UserAnswersIndexes = string.Join("&", q.UsersAnswersArray
+                    UserAnswersIndexes = string.Join("&", q.AnswerIndexes
                                                       .Select((val, indx) => new { val, indx })
                                                       .Where(q => q.val)
                                                       .Select(q => q.indx)),
                     QuestionId = q.Id,
                     UserId = userId,
-                    Score = CalculateClosedQuestionScore(q.UsersAnswersArray,
+                    Score = CalculateClosedQuestionScore(q.AnswerIndexes,
                         closedQuestion.Answers.Select(x=>x.IsCorrect).ToArray(), (decimal)closedQuestion.MaxScore)
                 };
             });
@@ -167,7 +167,7 @@ namespace Vitalis.Core.Services
                     answers.Add(new List<int>());
                     for (int i = 0; i < q.Options.Length; ++i)
                     {
-                        if (q.UsersAnswersArray[i])
+                        if (q.AnswerIndexes[i])
                         {
                             answers.Last().Add(i);
                         }
@@ -253,7 +253,7 @@ namespace Vitalis.Core.Services
                         IsDeleted = false,
                         Text = q.Question.Text,
                         Id = q.Id,
-                        UsersAnswersArray = ProcessAnswerIndexes(q.Question.Answers, q.UserAnswersIndexes),
+                        AnswerIndexes = ProcessAnswerIndexes(q.Question.Answers, q.UserAnswersIndexes),
                         CorrectAnswersArray = q.Question.Answers.Select(x=>x.IsCorrect).ToArray(),
                         MaxScore = q.Question.MaxScore,
                         ImagePath = q.Question.ImagePath,
