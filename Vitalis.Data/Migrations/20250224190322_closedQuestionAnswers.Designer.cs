@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Vitalis.Data;
@@ -11,9 +12,11 @@ using Vitalis.Data;
 namespace Vitalis.Data.Migrations
 {
     [DbContext(typeof(VitalisDbContext))]
-    partial class VitalisDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250224190322_closedQuestionAnswers")]
+    partial class closedQuestionAnswers
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -292,11 +295,11 @@ namespace Vitalis.Data.Migrations
                     b.Property<string>("Explanation")
                         .HasColumnType("text");
 
-                    b.Property<decimal>("Points")
-                        .HasColumnType("numeric");
-
                     b.Property<Guid>("QuestionId")
                         .HasColumnType("uuid");
+
+                    b.Property<decimal>("Score")
+                        .HasColumnType("numeric");
 
                     b.Property<string>("UserId")
                         .IsRequired()
@@ -396,14 +399,13 @@ namespace Vitalis.Data.Migrations
                     b.Property<string>("Explanation")
                         .HasColumnType("text");
 
-                    b.Property<float>("Points")
-                        .HasColumnType("real");
-
                     b.Property<Guid>("QuestionId")
                         .HasColumnType("uuid");
 
+                    b.Property<float>("Score")
+                        .HasColumnType("real");
+
                     b.Property<string>("UserAnswer")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("UserId")

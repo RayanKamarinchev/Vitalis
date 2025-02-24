@@ -30,8 +30,8 @@ namespace Vitalis.Data.Entities
         public bool IsPublic { get; set; }
         public IEnumerable<TestLike> TestLikes { get; set; }
         public string? QuestionsOrder { get; set; }
-        public IList<OpenQuestion> OpenQuestions { get; set; } = new List<OpenQuestion>();
-        public IList<ClosedQuestion> ClosedQuestions { get; set; } = new List<ClosedQuestion>();
+        public List<OpenQuestion> OpenQuestions { get; set; } = new List<OpenQuestion>();
+        public List<ClosedQuestion> ClosedQuestions { get; set; } = new List<ClosedQuestion>();
         public IEnumerable<TestResult> TestResults { get; set; }
     }
 }

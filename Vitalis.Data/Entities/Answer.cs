@@ -10,8 +10,10 @@ namespace Vitalis.Data.Entities
         public string Text { get; set; }
         public bool IsCorrect { get; set; }
 
-        public Guid QuestionId { get; set; }
-        [ForeignKey(nameof(QuestionId))]
-        public ClosedQuestion Question { get; set; }
+        public Guid ClosedQuestionId { get; set; }
+        [ForeignKey(nameof(ClosedQuestionId))]
+        public ClosedQuestion ClosedQuestion { get; set; }
+
+        public int Order { get; set; }
     }
 }

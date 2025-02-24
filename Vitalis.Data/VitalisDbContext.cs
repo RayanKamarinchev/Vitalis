@@ -41,5 +41,6 @@ namespace Vitalis.Data
         public DbSet<OrganicGroup> OrganicGroups { get; set; }
         public DbSet<Answer> Answers { get; set; }
         public DbSet<Compound> Compounds { get; set; }
+        public DbSet<ClosedQuestionAnswerSelected> ClosedQuestionAnswerSelections { get; set; }
     }
 }

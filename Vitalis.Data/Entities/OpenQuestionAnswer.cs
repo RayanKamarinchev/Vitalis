@@ -8,14 +8,14 @@ namespace Vitalis.Data.Entities
         [Key]
         public Guid Id { get; set; }
         
-        public string? UserAnswer { get; set; }
+        public string UserAnswer { get; set; }
         public OpenQuestion Question { get; set; }
         [ForeignKey(nameof(Question))]
         public Guid QuestionId { get; set; }
         public User User { get; set; }
         [ForeignKey(nameof(User))]
         public string UserId { get; set; }
-        public float Score { get; set; }
+        public float Points { get; set; }
         public string? Explanation { get; set; }
     }
 }

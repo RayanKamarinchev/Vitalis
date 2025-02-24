@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Vitalis.Data;
@@ -11,9 +12,11 @@ using Vitalis.Data;
 namespace Vitalis.Data.Migrations
 {
     [DbContext(typeof(VitalisDbContext))]
-    partial class VitalisDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250224172337_fixes")]
+    partial class fixes
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -239,9 +242,6 @@ namespace Vitalis.Data.Migrations
                     b.Property<bool>("IsCorrect")
                         .HasColumnType("boolean");
 
-                    b.Property<int>("Order")
-                        .HasColumnType("integer");
-
                     b.Property<string>("Text")
                         .IsRequired()
                         .HasColumnType("text");
@@ -292,11 +292,14 @@ namespace Vitalis.Data.Migrations
                     b.Property<string>("Explanation")
                         .HasColumnType("text");
 
-                    b.Property<decimal>("Points")
-                        .HasColumnType("numeric");
-
                     b.Property<Guid>("QuestionId")
                         .HasColumnType("uuid");
+
+                    b.Property<decimal>("Score")
+                        .HasColumnType("numeric");
+
+                    b.Property<string>("UserAnswersIndexes")
+                        .HasColumnType("text");
 
                     b.Property<string>("UserId")
                         .IsRequired()
@@ -309,25 +312,6 @@ namespace Vitalis.Data.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("ClosedQuestionAnswers");
-                });
-
-            modelBuilder.Entity("Vitalis.Data.Entities.ClosedQuestionAnswerSelected", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<int>("AnswerIndex")
-                        .HasColumnType("integer");
-
-                    b.Property<Guid>("ClosedQuestionAnswerId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ClosedQuestionAnswerId");
-
-                    b.ToTable("ClosedQuestionAnswerSelections");
                 });
 
             modelBuilder.Entity("Vitalis.Data.Entities.Compound", b =>
@@ -396,14 +380,13 @@ namespace Vitalis.Data.Migrations
                     b.Property<string>("Explanation")
                         .HasColumnType("text");
 
-                    b.Property<float>("Points")
-                        .HasColumnType("real");
-
                     b.Property<Guid>("QuestionId")
                         .HasColumnType("uuid");
 
+                    b.Property<float>("Score")
+                        .HasColumnType("real");
+
                     b.Property<string>("UserAnswer")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("UserId")
@@ -632,17 +615,6 @@ namespace Vitalis.Data.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Vitalis.Data.Entities.ClosedQuestionAnswerSelected", b =>
-                {
-                    b.HasOne("Vitalis.Data.Entities.ClosedQuestionAnswer", "ClosedQuestionAnswer")
-                        .WithMany("Selected")
-                        .HasForeignKey("ClosedQuestionAnswerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("ClosedQuestionAnswer");
-                });
-
             modelBuilder.Entity("Vitalis.Data.Entities.OpenQuestion", b =>
                 {
                     b.HasOne("Vitalis.Data.Entities.Test", "Test")
@@ -746,11 +718,6 @@ namespace Vitalis.Data.Migrations
                     b.Navigation("Answers");
 
                     b.Navigation("UserAnswers");
-                });
-
-            modelBuilder.Entity("Vitalis.Data.Entities.ClosedQuestionAnswer", b =>
-                {
-                    b.Navigation("Selected");
                 });
 
             modelBuilder.Entity("Vitalis.Data.Entities.OpenQuestion", b =>

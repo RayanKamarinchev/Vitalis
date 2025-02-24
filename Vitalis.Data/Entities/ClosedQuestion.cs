@@ -15,7 +15,7 @@ namespace Vitalis.Data.Entities
         [Required]
         public Guid TestId { get; set; }
         [ForeignKey(nameof(TestId))]
-        public Test TestGroup { get; set; }
+        public Test Test { get; set; }
         public IEnumerable<ClosedQuestionAnswer> UserAnswers { get; set; }
         public float MaxScore { get; set; }
         public string ImagePath { get; set; }
